@@ -1,0 +1,54 @@
+{
+  "lexicon": 1,
+  "id": "click.croft.hasharium.exhibition",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["title", "specimens", "createdAt"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 300,
+            "maxGraphemes": 80
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000,
+            "maxGraphemes": 600
+          },
+          "specimens": {
+            "type": "array",
+            "minLength": 1,
+            "maxLength": 60,
+            "items": {
+              "type": "ref",
+              "ref": "#specimen"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    },
+    "specimen": {
+      "type": "object",
+      "required": ["subject"],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "format": "did"
+        },
+        "caption": {
+          "type": "string",
+          "maxLength": 1000,
+          "maxGraphemes": 280
+        }
+      }
+    }
+  }
+}

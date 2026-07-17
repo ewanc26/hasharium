@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "click.croft.hasharium.intersection",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["with", "createdAt"],
+        "properties": {
+          "with": {
+            "type": "string",
+            "format": "did",
+            "description": "The other participant. The repository DID supplies the first participant."
+          },
+          "generatorVersion": {
+            "type": "string",
+            "knownValues": ["sha256-radial-v1"]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 1000,
+            "maxGraphemes": 280
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}
