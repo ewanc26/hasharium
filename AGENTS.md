@@ -53,6 +53,9 @@ leave documentation describing planned behavior as if it already exists.
   exact-rkey delete operations. Treat loaded records and PDS responses as untrusted.
 - `src/lib/export.ts` serializes portable specimen SVGs and provenance metadata. Export changes
   must preserve well-formed XML and keep subject DIDs escaped as untrusted text.
+- `src/lib/og.ts` validates social-card DID inputs and constructs canonical production image URLs.
+- `api/og.tsx` is the dynamic Vercel Function that renders the canonical specimen as a PNG. It must
+  derive geometry through `generateSpecimen`, not reimplement or mutate the generator.
 - `src/lib/shape.test.ts` protects deterministic output, validation, and trait bounds.
 - `src/lib/protocol.ts` is the canonical TypeScript source for the production hostname,
   generator version, and every application NSID used by runtime code.
@@ -220,6 +223,9 @@ When extending authenticated PDS behavior:
 - Avoid runtime third-party font, analytics, and asset requests. Inter and JetBrains Mono are
   self-hosted in the build, the display serif uses a local system stack, and specimens are
   computed entirely in the browser. Preserve the visible font licence notice when changing fonts.
+- Social cards must remain 1200×630 PNGs, accept canonical DIDs only, escape all displayed input,
+  and preserve the observation-plate language. Successful cards may be immutable because the URL
+  contains the complete DID and v1 output is stable; invalid inputs must not be cached.
 
 ## Svelte and code rules
 
@@ -305,6 +311,8 @@ UI changes additionally require manual checks for:
   writes, exact delete keys, and the public-note disclosure;
 - production output served from the same kind of static hosting intended for
   `hasharium.croft.click`, including direct/fallback routes and favicon/metadata.
+- `/api/og` returns PNG signature bytes at 1200×630 for at least two DIDs, returns a non-cacheable
+  `400` for invalid input, and is referenced by absolute Open Graph and Twitter metadata.
 
 Do not claim production deployment, working OAuth, repository persistence, handle resolution,
 mutual intersections, or public collection discovery based only on a passing build. Verify each at
@@ -312,11 +320,13 @@ its real surface.
 
 ## Deployment rules
 
-- The current adapter is static and writes `build/` with a `404.html` fallback. Keep README and
-  hosting configuration aligned if this changes.
+- The current adapter writes the site to `build/` with a `404.html` fallback. Vercel additionally
+  bundles root-level `api/` functions; keep the static site and function boundary explicit.
 - `vercel.json` explicitly selects `pnpm build`, the `build/` output directory, and clean URLs so
   `/profile` and `/about` resolve to their prerendered HTML files. Preserve this static contract
   unless the application intentionally moves to Vercel's server adapter.
+- The OG function uses the Node.js runtime and `@vercel/og`. Verify it with `vercel build` or a live
+  deployment because `pnpm build` validates only the Svelte static artifact.
 - Production must use HTTPS at `hasharium.croft.click`. DNS, TLS, CDN/cache rules, and the deployed
   artifact are operator state outside a local build; inspect them before reporting deployment done.
 - Static assets may be cached aggressively when fingerprinted. HTML and client/OAuth metadata need

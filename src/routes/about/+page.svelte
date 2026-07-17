@@ -10,6 +10,16 @@
     name="description"
     content="How Hasharium derives identity specimens, handles OAuth sessions, and stores collection records."
   />
+  <meta property="og:title" content="About, privacy and terms — Hasharium" />
+  <meta
+    property="og:description"
+    content="How Hasharium derives identity specimens, handles OAuth sessions, and stores collection records."
+  />
+  <meta name="twitter:title" content="About, privacy and terms — Hasharium" />
+  <meta
+    name="twitter:description"
+    content="How Hasharium derives identity specimens, handles OAuth sessions, and stores collection records."
+  />
 </svelte:head>
 
 <div class="site-shell">

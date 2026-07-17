@@ -163,6 +163,16 @@
     name="description"
     content="Sign in with an AT Protocol identity and keep a portable Hasharium specimen cabinet in your PDS."
   />
+  <meta property="og:title" content="Your curator profile — Hasharium" />
+  <meta
+    property="og:description"
+    content="Keep a portable cabinet of deterministic identity specimens in your AT Protocol repository."
+  />
+  <meta name="twitter:title" content="Your curator profile — Hasharium" />
+  <meta
+    name="twitter:description"
+    content="Keep a portable cabinet of deterministic identity specimens in your AT Protocol repository."
+  />
 </svelte:head>
 
 <div class="site-shell">

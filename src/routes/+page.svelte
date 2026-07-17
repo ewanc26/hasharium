@@ -216,6 +216,11 @@
     property="og:description"
     content="Enter a DID. Observe the form that was always inside it."
   />
+  <meta name="twitter:title" content="Hasharium — identities, given form" />
+  <meta
+    name="twitter:description"
+    content="Enter a DID. Observe the form that was always inside it."
+  />
 </svelte:head>
 
 <div class="site-shell">

@@ -22,6 +22,7 @@ The public prototype includes:
 - AT Protocol OAuth using the official browser client, PKCE, DPoP, and refresh-token rotation;
 - a curator profile with the signed-in identity's specimen and PDS-backed collection cabinet;
 - confirmed creation and removal of `click.croft.hasharium.collection.entry` records;
+- deterministic 1200×630 PNG social cards generated per DID at `/api/og`;
 - static output suitable for deployment at `hasharium.croft.click`;
 - initial AT Protocol lexicons under the required `click.croft.hasharium.*` namespace.
 
@@ -63,12 +64,14 @@ src/lib/export.ts                   standalone SVG and provenance metadata expor
 src/lib/oauth-config.ts             production/loopback OAuth identifiers and bounded scopes
 src/lib/oauth.ts                    browser OAuth session lifecycle and authenticated Agent
 src/lib/collection.ts               validated collection reads, confirmed writes, and removals
+src/lib/og.ts                       validated social-card parameters and canonical image URLs
 src/lib/protocol.ts                 canonical host, NSIDs, and protocol constants
 src/lib/components/Specimen.svelte  accessible SVG presentation
 src/routes/+page.svelte             observation, cabinet, and study-tray interaction
 src/routes/profile/+page.svelte     OAuth entry point and PDS-backed curator profile
 src/routes/about/+page.svelte       method, privacy, permission, and service terms
 src/routes/styles.css               complete visual system and responsive layout
+api/og.tsx                          dynamic Vercel OG image function
 lexicons/click/croft/hasharium/     AT Protocol lexicon sources
 ```
 
@@ -106,12 +109,25 @@ Inter and JetBrains Mono are packaged into the production build from Fontsource;
 not contact a font CDN. The cabinet's display serif remains a deliberately system-native contrast.
 Their SIL Open Font License notices are published at `/font-licenses.txt`.
 
+## Social cards
+
+The production Open Graph image endpoint accepts one canonical DID and renders its exact v1
+specimen as a 1200×630 PNG:
+
+```text
+https://hasharium.croft.click/api/og?did=did%3Aplc%3Aofrbh253gwicbkc5nktqepol
+```
+
+An omitted `did` uses the `ewancroft.uk` owner DID. Invalid or oversized identifiers return a
+non-cacheable JSON `400`; handles are intentionally rejected because mutable handle text must not
+become canonical morphology. Successful images are immutable and CDN-cacheable because the DID and
+generator version completely determine their output.
+
 ## Deployment
 
-Hasharium is configured with SvelteKit's static adapter and a `404.html` fallback. Deploy the
-contents of `build/` behind HTTPS and configure `hasharium.croft.click` as the custom hostname.
-Because the current site is client-only, no application secrets or runtime server process are
-required.
+Hasharium is configured with SvelteKit's static adapter and a `404.html` fallback. Vercel serves
+the contents of `build/` and runs the source-controlled `/api/og` image function alongside them.
+No application secrets are required.
 
 `vercel.json` pins the Vercel build command, `build/` output directory, and clean-URL mapping so
 Vercel serves prerendered `/profile` and `/about` routes without exposing `.html` suffixes.
