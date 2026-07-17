@@ -2,6 +2,7 @@
   import type { Agent } from '@atproto/api';
   import { onMount } from 'svelte';
   import Masthead from '$lib/components/Masthead.svelte';
+  import CollectorRegister from '$lib/components/CollectorRegister.svelte';
   import SiteFooter from '$lib/components/SiteFooter.svelte';
   import SpecimenView from '$lib/components/Specimen.svelte';
   import {
@@ -80,8 +81,11 @@
   }
 
   async function initialize() {
+    const sharedDid = new URL(window.location.href).searchParams.get('did');
+    const initialDid = sharedDid && isDid(sharedDid) ? sharedDid : defaultDid;
+    input = initialDid;
     [specimen, examples] = await Promise.all([
-      generateSpecimen(defaultDid),
+      generateSpecimen(initialDid),
       Promise.all(exampleDids.map((did) => generateSpecimen(did)))
     ]);
 
@@ -114,6 +118,7 @@
       if (request === renderRequest) {
         specimen = next;
         input = next.did;
+        window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}`);
         resolvedHandle = identity.handle ?? '';
         pendingRemoteRemovalDid = '';
       }
@@ -140,6 +145,7 @@
     resolvedHandle = '';
     error = '';
     pendingRemoteRemovalDid = '';
+    window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}`);
     document.querySelector('#specimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -321,6 +327,7 @@
           {#if collectionMessage}
             <p class="collection-message" role="status">{collectionMessage}</p>
           {/if}
+          <CollectorRegister did={specimen.did} />
         {/if}
       </div>
     </section>
@@ -377,7 +384,7 @@
         </li>
         <li>
           <span>04</span>
-          <div><strong>Collect</strong><p>Portable collection records will live in each visitor’s PDS.</p></div>
+          <div><strong>Collect</strong><p>Portable observations live in each signed-in visitor’s PDS.</p></div>
         </li>
       </ol>
 
@@ -405,8 +412,8 @@
         <button type="button" onclick={() => (cabinetOpen = false)} aria-label="Close study tray">×</button>
       </div>
       <p class="tray-note">
-        These specimens currently live in this browser. PDS-backed collection records under
-        <code>{NSID.collectionEntry}</code> are the next protocol milestone.
+        These specimens live only in this browser. Sign in through Profile to keep confirmed public
+        records under <code>{NSID.collectionEntry}</code> in your PDS instead.
       </p>
       {#if savedSpecimens.length}
         <div class="tray-grid">

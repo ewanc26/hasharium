@@ -51,11 +51,15 @@ leave documentation describing planned behavior as if it already exists.
   IndexedDB-backed sessions, and exposes the authenticated `Agent` through a Svelte store.
 - `src/lib/collection.ts` validates collection records and owns bounded list, confirmed create, and
   exact-rkey delete operations. Treat loaded records and PDS responses as untrusted.
+- `src/lib/backlinks.ts` discovers collection candidates through Constellation, verifies exact
+  records through Slingshot, and deduplicates curators. The index alone is never evidence.
 - `src/lib/export.ts` serializes portable specimen SVGs and provenance metadata. Export changes
   must preserve well-formed XML and keep subject DIDs escaped as untrusted text.
 - `src/lib/og.ts` validates social-card DID inputs and constructs canonical production image URLs.
 - `api/og.tsx` is the dynamic Vercel Function that renders the canonical specimen as a PNG. It must
   derive geometry through `generateSpecimen`, not reimplement or mutate the generator.
+- `api/collectors.ts` exposes bounded, cached collector discovery; invalid inputs and upstream
+  failures must remain non-cacheable.
 - `src/lib/shape.test.ts` protects deterministic output, validation, and trait bounds.
 - `src/lib/protocol.ts` is the canonical TypeScript source for the production hostname,
   generator version, and every application NSID used by runtime code.
@@ -313,6 +317,8 @@ UI changes additionally require manual checks for:
   `hasharium.croft.click`, including direct/fallback routes and favicon/metadata.
 - `/api/og` returns PNG signature bytes at 1200×630 for at least two DIDs, returns a non-cacheable
   `400` for invalid input, and is referenced by absolute Open Graph and Twitter metadata.
+- `/api/collectors` rejects invalid DIDs, bounds candidate work, ignores stale/spoofed records, and
+  deduplicates repeated collection entries by repository DID.
 
 Do not claim production deployment, working OAuth, repository persistence, handle resolution,
 mutual intersections, or public collection discovery based only on a passing build. Verify each at
@@ -355,7 +361,7 @@ Unless the user prioritizes another slice, develop in this order:
 1. Harden v1 golden compatibility tests and exportable SVG metadata.
 2. Add handle-to-DID resolution while continuing to hash only the resolved DID.
 3. Add deterministic pair intersections with reciprocal-status evidence.
-4. Add authored exhibitions and public discovery through verified records/backlinks.
+4. Add authored exhibitions and extend public discovery through verified exhibition backlinks.
 5. Consider replacing the three explicit same-namespace scopes with a published Hasharium
    permission set once that improves authorization descriptions without broadening access.
 

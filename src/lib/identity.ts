@@ -1,5 +1,5 @@
-import { isDid } from "./shape";
-import { PLACEHOLDER_DID } from "./protocol";
+import { isDid } from "./shape.js";
+import { PLACEHOLDER_DID } from "./protocol.js";
 
 const RESOLVER_ENDPOINT =
   "https://slingshot.microcosm.blue/xrpc/blue.microcosm.identity.resolveMiniDoc";

@@ -653,6 +653,109 @@ textarea:focus-visible {
   line-height: 1.55;
 }
 
+.collector-register {
+  margin-top: var(--space-6);
+  padding: var(--space-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+}
+
+.collector-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.collector-heading span,
+.collector-heading > strong {
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.collector-heading h3 {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+
+.collector-register ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.collector-register li + li {
+  border-top: 1px solid var(--line);
+}
+
+.collector-register li a {
+  display: grid;
+  grid-template-columns: var(--control-size) minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 64px;
+  padding: var(--space-sm) var(--space-xs);
+  transition: background var(--duration-fast) var(--ease-out-quart);
+}
+
+.collector-register li a:hover {
+  background: color-mix(in oklch, var(--red) 8%, transparent);
+}
+
+.collector-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--paper-light);
+  background: var(--green);
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+}
+
+.collector-register li a > span:nth-child(2) {
+  min-width: 0;
+}
+
+.collector-register li strong,
+.collector-register li small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collector-register li strong {
+  font-family: var(--font-display);
+  font-size: 0.96rem;
+  font-weight: 400;
+}
+
+.collector-register li small,
+.collector-register time,
+.collector-register > p {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+}
+
+.collector-register time {
+  text-transform: uppercase;
+}
+
+.collector-register > p {
+  margin: var(--space-3) 0 0;
+  line-height: 1.5;
+}
+
 .cabinet {
   padding: var(--space-2xl) max(32px, calc((100vw - var(--shell-wide)) / 2));
   background: var(--paper-light);

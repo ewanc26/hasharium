@@ -3,8 +3,8 @@ import {
   GENERATOR_VERSION,
   NSID,
   type CollectionEntryRecord,
-} from "./protocol";
-import { isDid } from "./shape";
+} from "./protocol.js";
+import { isDid } from "./shape.js";
 
 const MAX_RECORD_PAGES = 10;
 

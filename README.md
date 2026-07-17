@@ -22,12 +22,13 @@ The public prototype includes:
 - AT Protocol OAuth using the official browser client, PKCE, DPoP, and refresh-token rotation;
 - a curator profile with the signed-in identity's specimen and PDS-backed collection cabinet;
 - confirmed creation and removal of `click.croft.hasharium.collection.entry` records;
+- verified backlink discovery of other curators who collected the observed DID;
 - deterministic 1200×630 PNG social cards generated per DID at `/api/og`;
 - static output suitable for deployment at `hasharium.croft.click`;
 - initial AT Protocol lexicons under the required `click.croft.hasharium.*` namespace.
 
-Intersections, exhibitions, and network-wide public collection discovery are deliberately not
-presented as working yet. Signed-out observations remain useful and private to the device; signed-in
+Intersections and exhibitions are deliberately not presented as working yet. Signed-out
+observations remain useful and private to the device; signed-in
 collection changes complete only after the visitor's PDS confirms them.
 
 ## Development
@@ -64,6 +65,7 @@ src/lib/export.ts                   standalone SVG and provenance metadata expor
 src/lib/oauth-config.ts             production/loopback OAuth identifiers and bounded scopes
 src/lib/oauth.ts                    browser OAuth session lifecycle and authenticated Agent
 src/lib/collection.ts               validated collection reads, confirmed writes, and removals
+src/lib/backlinks.ts                bounded discovery and repository verification of collectors
 src/lib/og.ts                       validated social-card parameters and canonical image URLs
 src/lib/protocol.ts                 canonical host, NSIDs, and protocol constants
 src/lib/components/Specimen.svelte  accessible SVG presentation
@@ -72,6 +74,7 @@ src/routes/profile/+page.svelte     OAuth entry point and PDS-backed curator pro
 src/routes/about/+page.svelte       method, privacy, permission, and service terms
 src/routes/styles.css               complete visual system and responsive layout
 api/og.tsx                          dynamic Vercel OG image function
+api/collectors.ts                    cached public collector-discovery function
 lexicons/click/croft/hasharium/     AT Protocol lexicon sources
 ```
 
@@ -109,6 +112,14 @@ Inter and JetBrains Mono are packaged into the production build from Fontsource;
 not contact a font CDN. The cabinet's display serif remains a deliberately system-native contrast.
 Their SIL Open Font License notices are published at `/font-licenses.txt`.
 
+## Collector backlinks
+
+For each observed DID, `/api/collectors` asks Constellation for records whose
+`click.croft.hasharium.collection.entry` subject points to that DID. Index results are candidates,
+not proof: Hasharium reads each exact record through Slingshot and accepts it only when the author,
+record URI, type, and subject match. Duplicate records by one curator collapse into one person.
+The specimen register links each verified curator back to their own deterministic form.
+
 ## Social cards
 
 The production Open Graph image endpoint accepts one canonical DID and renders its exact v1
@@ -126,7 +137,8 @@ generator version completely determine their output.
 ## Deployment
 
 Hasharium is configured with SvelteKit's static adapter and a `404.html` fallback. Vercel serves
-the contents of `build/` and runs the source-controlled `/api/og` image function alongside them.
+the contents of `build/` and runs the source-controlled `/api/og` and `/api/collectors` functions
+alongside them.
 No application secrets are required.
 
 `vercel.json` pins the Vercel build command, `build/` output directory, and clean-URL mapping so
