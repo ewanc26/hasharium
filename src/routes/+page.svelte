@@ -1,9 +1,19 @@
 <script lang="ts">
+  import type { Agent } from '@atproto/api';
   import { onMount } from 'svelte';
+  import Masthead from '$lib/components/Masthead.svelte';
+  import SiteFooter from '$lib/components/SiteFooter.svelte';
   import SpecimenView from '$lib/components/Specimen.svelte';
+  import {
+    createCollectionEntry,
+    deleteCollectionEntry,
+    listCollectionEntries,
+    type CollectionEntry
+  } from '$lib/collection';
   import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
   import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
-  import { GENERATOR_VERSION, NSID, PLACEHOLDER_DID, SOURCE_URL } from '$lib/protocol';
+  import { authState } from '$lib/oauth';
+  import { GENERATOR_VERSION, NSID, PLACEHOLDER_DID } from '$lib/protocol';
   import { generateSpecimen, isDid, type Specimen } from '$lib/shape';
 
   const defaultDid = PLACEHOLDER_DID;
@@ -25,11 +35,48 @@
   let loading = $state(true);
   let cabinetOpen = $state(false);
   let resolvedHandle = $state('');
+  let remoteEntries = $state<CollectionEntry[]>([]);
+  let remoteLoadedDid = $state('');
+  let collectionLoading = $state(false);
+  let collectionMessage = $state('');
+  let pendingRemoteRemovalDid = $state('');
   let renderRequest = 0;
-  let isSaved = $derived(specimen ? savedDids.includes(specimen.did) : false);
+  let remoteEntry = $derived(
+    specimen ? remoteEntries.find((entry) => entry.record.subject === specimen?.did) : undefined
+  );
+  let isSaved = $derived(
+    specimen
+      ? $authState.status === 'signed-in'
+        ? Boolean(remoteEntry)
+        : savedDids.includes(specimen.did)
+      : false
+  );
+
+  $effect(() => {
+    const current = $authState;
+    if (current.status === 'signed-in' && current.did !== remoteLoadedDid) {
+      remoteLoadedDid = current.did;
+      void hydrateRemoteCollection(current.agent);
+    } else if (current.status === 'signed-out') {
+      remoteLoadedDid = '';
+      remoteEntries = [];
+    }
+  });
 
   async function hydrateSaved(dids: string[]) {
     savedSpecimens = await Promise.all(dids.map((did) => generateSpecimen(did)));
+  }
+
+  async function hydrateRemoteCollection(agent: Agent) {
+    collectionLoading = true;
+    collectionMessage = '';
+    try {
+      remoteEntries = await listCollectionEntries(agent);
+    } catch (reason) {
+      collectionMessage = reason instanceof Error ? reason.message : 'The PDS collection could not be read.';
+    } finally {
+      collectionLoading = false;
+    }
   }
 
   async function initialize() {
@@ -68,6 +115,7 @@
         specimen = next;
         input = next.did;
         resolvedHandle = identity.handle ?? '';
+        pendingRemoteRemovalDid = '';
       }
     } catch (reason) {
       if (request === renderRequest) {
@@ -91,11 +139,40 @@
     input = next.did;
     resolvedHandle = '';
     error = '';
+    pendingRemoteRemovalDid = '';
     document.querySelector('#specimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   async function toggleSaved() {
     if (!specimen) return;
+    const current = $authState;
+    if (current.status === 'signed-in') {
+      collectionLoading = true;
+      collectionMessage = '';
+      try {
+        if (remoteEntry) {
+          if (pendingRemoteRemovalDid !== specimen.did) {
+            pendingRemoteRemovalDid = specimen.did;
+            collectionMessage = 'Select “Confirm removal” to delete this record from your PDS.';
+            return;
+          }
+          await deleteCollectionEntry(current.agent, remoteEntry);
+          remoteEntries = remoteEntries.filter((entry) => entry.uri !== remoteEntry?.uri);
+          pendingRemoteRemovalDid = '';
+          collectionMessage = 'The PDS confirmed removal from your profile cabinet.';
+        } else {
+          const entry = await createCollectionEntry(current.agent, specimen.did);
+          remoteEntries = [entry, ...remoteEntries];
+          collectionMessage = 'The PDS confirmed this specimen in your profile cabinet.';
+        }
+      } catch (reason) {
+        collectionMessage = reason instanceof Error ? reason.message : 'The PDS collection could not be updated.';
+      } finally {
+        collectionLoading = false;
+      }
+      return;
+    }
+
     savedDids = isSaved
       ? savedDids.filter((did) => did !== specimen?.did)
       : [...savedDids, specimen.did];
@@ -142,25 +219,10 @@
 </svelte:head>
 
 <div class="site-shell">
-  <header class="masthead">
-    <a class="wordmark" href="#top" aria-label="Hasharium home">
-      <svg viewBox="0 0 42 42" aria-hidden="true">
-        <path d="M21 3C24 12 34 10 38 21 29 24 32 34 21 39 17 30 8 33 4 21 13 18 10 8 21 3Z" />
-        <circle cx="21" cy="21" r="5" />
-      </svg>
-      <span>Hasharium</span>
-    </a>
-    <nav aria-label="Primary navigation">
-      <a href="#cabinet">The cabinet</a>
-      <a href="#method">Method</a>
-      <button class="tray-button" type="button" onclick={() => (cabinetOpen = true)}>
-        Study tray <span>{savedDids.length}</span>
-      </button>
-    </nav>
-  </header>
+  <Masthead trayCount={savedDids.length} onOpenTray={() => (cabinetOpen = true)} />
 
-  <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
+  <main id="main-content" tabindex="-1">
+    <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow"><span></span> Registry of deterministic forms</p>
         <h1 id="hero-title">Identity,<br /><em>given form.</em></h1>
@@ -228,9 +290,20 @@
                 type="button"
                 onclick={() => void toggleSaved()}
                 aria-pressed={isSaved}
+                disabled={collectionLoading}
               >
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h12v14l-6-3-6 3V3Z" /></svg>
-                {isSaved ? 'In study tray' : 'Keep specimen'}
+                {collectionLoading
+                  ? 'Updating…'
+                  : $authState.status === 'signed-in'
+                    ? pendingRemoteRemovalDid === specimen.did
+                      ? 'Confirm removal'
+                      : isSaved
+                        ? 'In your profile'
+                      : 'Collect in PDS'
+                    : isSaved
+                      ? 'In study tray'
+                      : 'Keep specimen'}
               </button>
             </div>
           </div>
@@ -240,6 +313,9 @@
             <div><dt>Material</dt><dd>{specimen.material}</dd></div>
             <div><dt>Temperament</dt><dd>{specimen.temperament}</dd></div>
           </dl>
+          {#if collectionMessage}
+            <p class="collection-message" role="status">{collectionMessage}</p>
+          {/if}
         {/if}
       </div>
     </section>
@@ -308,17 +384,7 @@
     </section>
   </main>
 
-  <footer>
-    <a class="wordmark footer-mark" href="#top">
-      <svg viewBox="0 0 42 42" aria-hidden="true">
-        <path d="M21 3C24 12 34 10 38 21 29 24 32 34 21 39 17 30 8 33 4 21 13 18 10 8 21 3Z" />
-        <circle cx="21" cy="21" r="5" />
-      </svg>
-      <span>Hasharium</span>
-    </a>
-    <p>An independent study of identity and form.</p>
-    <p><a href={SOURCE_URL}>Source &amp; AGPL-3.0 licence ↗</a></p>
-  </footer>
+  <SiteFooter />
 </div>
 
 {#if cabinetOpen}

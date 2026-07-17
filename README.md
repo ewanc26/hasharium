@@ -18,13 +18,16 @@ The public prototype includes:
 - standalone SVG export with subject, fingerprint, catalogue, and generator metadata;
 - a specimen label and morphological traits;
 - a curated public cabinet of example identities;
-- a browser-local study tray;
+- a browser-local signed-out study tray;
+- AT Protocol OAuth using the official browser client, PKCE, DPoP, and refresh-token rotation;
+- a curator profile with the signed-in identity's specimen and PDS-backed collection cabinet;
+- confirmed creation and removal of `click.croft.hasharium.collection.entry` records;
 - static output suitable for deployment at `hasharium.croft.click`;
 - initial AT Protocol lexicons under the required `click.croft.hasharium.*` namespace.
 
-OAuth, PDS record writes, public collection loading, intersections, and exhibitions are
-deliberately not presented as working yet. The local study tray is a preview of the eventual signed
-collection experience.
+Intersections, exhibitions, and network-wide public collection discovery are deliberately not
+presented as working yet. Signed-out observations remain useful and private to the device; signed-in
+collection changes complete only after the visitor's PDS confirms them.
 
 ## Development
 
@@ -34,6 +37,10 @@ Use Node.js 22 or newer and pnpm:
 pnpm install
 pnpm dev
 ```
+
+The development OAuth client uses the AT Protocol loopback convention and redirects to
+`http://127.0.0.1:5173/profile`. Keep Vite on port 5173 when manually exercising the development
+flow. Production uses the discoverable metadata at `/oauth-client-metadata.json`.
 
 Quality gates:
 
@@ -53,9 +60,14 @@ The static production output is written to `build/`.
 src/lib/shape.ts                    SHA-256-to-SVG renderer and morphology
 src/lib/identity.ts                 DID input and bounded handle resolution
 src/lib/export.ts                   standalone SVG and provenance metadata export
+src/lib/oauth-config.ts             production/loopback OAuth identifiers and bounded scopes
+src/lib/oauth.ts                    browser OAuth session lifecycle and authenticated Agent
+src/lib/collection.ts               validated collection reads, confirmed writes, and removals
 src/lib/protocol.ts                 canonical host, NSIDs, and protocol constants
 src/lib/components/Specimen.svelte  accessible SVG presentation
 src/routes/+page.svelte             observation, cabinet, and study-tray interaction
+src/routes/profile/+page.svelte     OAuth entry point and PDS-backed curator profile
+src/routes/about/+page.svelte       method, privacy, permission, and service terms
 src/routes/styles.css               complete visual system and responsive layout
 lexicons/click/croft/hasharium/     AT Protocol lexicon sources
 ```
@@ -74,6 +86,26 @@ All Hasharium records live below `click.croft.hasharium.*`:
 Lexicons describe public repository data. Notes are therefore public, despite their personal
 curatorial character. See `AGENTS.md` before changing schemas or implementing authentication.
 
+## OAuth and privacy
+
+Hasharium is a static public OAuth client. It requests identity plus granular repository access to
+every published Hasharium record type:
+
+```text
+atproto repo:click.croft.hasharium.collection.entry repo:click.croft.hasharium.exhibition repo:click.croft.hasharium.intersection
+```
+
+The official `@atproto/oauth-client-browser` package performs authorization-code exchange, PKCE,
+DPoP, refresh, revocation, and IndexedDB session storage. Hasharium never accepts app passwords and
+does not receive access outside `click.croft.hasharium.*`, blobs, email, or account administration.
+Handle resolution uses Microcosm Slingshot and therefore makes a disclosed network request; direct
+shape generation remains local. Collection records and optional field notes are public in the
+author's repository.
+
+Inter and JetBrains Mono are packaged into the production build from Fontsource; the browser does
+not contact a font CDN. The cabinet's display serif remains a deliberately system-native contrast.
+Their SIL Open Font License notices are published at `/font-licenses.txt`.
+
 ## Deployment
 
 Hasharium is configured with SvelteKit's static adapter and a `404.html` fallback. Deploy the
@@ -88,9 +120,9 @@ its server-rendered SvelteKit defaults to this static-adapter project.
 artifact. The `CNAME` file directly supports GitHub Pages; other hosts may ignore it and require
 their own domain configuration.
 
-Before enabling AT Protocol OAuth, add production client metadata, exact redirect URIs for
-`https://hasharium.croft.click`, a narrowly scoped repository permission, and real callback and
-session-restoration tests.
+Production OAuth depends on the metadata document, `/profile` callback route, and application
+origin remaining available at their exact HTTPS URLs. Changing the collection NSID, redirect URI,
+or scope requires updating runtime constants, static metadata, tests, and deployed files together.
 
 ## Licence
 

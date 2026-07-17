@@ -45,6 +45,12 @@ leave documentation describing planned behavior as if it already exists.
   palettes, and path construction. It contains no Svelte or browser UI state.
 - `src/lib/identity.ts` validates friendly handles and resolves them to canonical DIDs without
   changing the generator's DID-only input contract.
+- `src/lib/oauth-config.ts` owns the discoverable production client ID, callback, handle resolver,
+  least-privilege scope, and loopback client construction. Static metadata and tests must agree.
+- `src/lib/oauth.ts` dynamically loads the official browser OAuth client, restores/revokes its
+  IndexedDB-backed sessions, and exposes the authenticated `Agent` through a Svelte store.
+- `src/lib/collection.ts` validates collection records and owns bounded list, confirmed create, and
+  exact-rkey delete operations. Treat loaded records and PDS responses as untrusted.
 - `src/lib/export.ts` serializes portable specimen SVGs and provenance metadata. Export changes
   must preserve well-formed XML and keep subject DIDs escaped as untrusted text.
 - `src/lib/shape.test.ts` protects deterministic output, validation, and trait bounds.
@@ -54,7 +60,11 @@ leave documentation describing planned behavior as if it already exists.
 - `src/lib/components/Specimen.svelte` renders a `Specimen` as labelled, accessible SVG. It must
   not independently reinterpret digest bytes.
 - `src/routes/+page.svelte` coordinates the observation form, example cabinet, local study tray,
-  loading/error state, and page copy.
+  signed-in PDS collection shortcut, loading/error state, and page copy.
+- `src/routes/profile/+page.svelte` is the OAuth callback and curator profile. It displays the
+  signed-in DID specimen and manages that repository's Hasharium collection entries.
+- `src/routes/about/+page.svelte` is the public OAuth policy/terms URI and must accurately describe
+  storage, permissions, third-party resolution, public records, and availability.
 - `src/routes/styles.css` is the site-wide visual system. There is intentionally no component
   library or utility-CSS framework.
 - `lexicons/click/croft/hasharium/` contains the source lexicons. The directory mirrors each
@@ -111,12 +121,26 @@ Rules:
 
 ## AT Protocol and authentication boundaries
 
-The checked-in prototype resolves handles through Microcosm Slingshot but does not yet authenticate
-or write repository records. Until that work lands, the study tray is explicitly browser-local and
-must not imply that it follows the user. Copy must disclose that handle resolution is a network
-request while direct DID generation remains local.
+The application uses `@atproto/oauth-client-browser` as a static public client. It resolves handles
+through Microcosm Slingshot, completes OAuth at `/profile`, stores browser sessions in the SDK's
+IndexedDB database, and reads/writes confirmed collection-entry records in the signed-in user's PDS.
+The study tray remains explicitly browser-local and separate from the PDS profile cabinet. Copy must
+disclose that handle resolution is a network request while direct DID generation remains local.
 
-When implementing the PDS-backed milestone:
+Current OAuth invariants:
+
+- Production client ID: `https://hasharium.croft.click/oauth-client-metadata.json`.
+- Production redirect URI: `https://hasharium.croft.click/profile`.
+- Requested scope: `atproto` plus one granular `repo:` scope for each of collection entry,
+  intersection, and exhibition. Never replace these with `repo:*` or an unrelated namespace.
+- Client type: public web client with authorization code, refresh tokens, PKCE, and DPoP-bound
+  access tokens. Never add a browser client secret.
+- Development uses the AT Protocol loopback client convention with a `127.0.0.1` redirect; do not
+  replace it with `localhost` in the redirect URI.
+- Metadata scope is the maximum grant and runtime sign-in asks for the same namespace-bounded scope. Keep
+  `oauth-config.ts`, `static/oauth-client-metadata.json`, tests, `/about`, and this guidance aligned.
+
+When extending authenticated PDS behavior:
 
 - Prefer browser OAuth using current AT Protocol OAuth guidance. Do not add app-password login as
   a shortcut.
@@ -132,6 +156,8 @@ When implementing the PDS-backed milestone:
   Do not inspect or expose existing browser credentials while debugging.
 - A write is successful only after the repository confirms it. Surface pending, success, failure,
   and retry states accurately; never optimistically claim a collection was saved.
+- Revocation/sign-out errors must not leave the UI claiming an authenticated session. Never log or
+  render access tokens, refresh tokens, authorization codes, DPoP keys, or raw callback fragments.
 - Prevent accidental duplicate entries in normal UI, but tolerate duplicate public records when
   reading because repositories are user-controlled.
 - Validate every loaded record before rendering. Ignore unknown `$type`s, malformed dates,
@@ -174,6 +200,10 @@ When implementing the PDS-backed milestone:
   Avoid generic gradient SaaS cards, neon crypto aesthetics, glassmorphism, excessive pills, and
   dashboards full of metrics.
 - Let the specimens provide most of the colour. Interface chrome should remain restrained.
+- Hasharium is the natural-history expression of the wider Croft design language: preserve the
+  shared 4pt spacing rhythm, Inter/system UI register, mono technical labels, earthy OKLCH palette,
+  stable colour-based editorial-row interaction, strong focus treatment, and purposeful easing.
+  Its display serif, paper, oxide, plates, rules, and drawer metaphor remain intentionally unique.
 - Use code-native SVG/CSS for canonical shapes, diagrams, marks, and icons. Do not rasterize the
   generator output or require an image-generation service to render identity forms.
 - Use real semantic controls. Cards that select specimens are buttons; destinations are links.
@@ -187,8 +217,9 @@ When implementing the PDS-backed milestone:
   wrap without widening the page. Dialog content must remain reachable on short screens.
 - The browser-local tray key is `hasharium.study-tray`. Treat its JSON as untrusted: catch parse
   failures and filter values. A format change requires tolerant migration or an explicit reset.
-- Avoid runtime third-party font, analytics, and asset requests. The prototype deliberately uses
-  local system font stacks and computes specimens entirely in the browser.
+- Avoid runtime third-party font, analytics, and asset requests. Inter and JetBrains Mono are
+  self-hosted in the build, the display serif uses a local system stack, and specimens are
+  computed entirely in the browser. Preserve the visible font licence notice when changing fonts.
 
 ## Svelte and code rules
 
@@ -268,6 +299,10 @@ UI changes additionally require manual checks for:
   names/status, reduced motion, narrow mobile, tablet, desktop, and high zoom;
 - no unexpected external requests, console errors, horizontal overflow, clipped dialog content, or
   false claims of PDS persistence;
+- OAuth metadata fetch, handle/DID sign-in, callback cleanup, session restore, revocation, denied and
+  failed authorization, and a callback reload that does not exchange the same code twice;
+- PDS collection list/create/delete with malformed records, duplicates, cursor failure, rejected
+  writes, exact delete keys, and the public-note disclosure;
 - production output served from the same kind of static hosting intended for
   `hasharium.croft.click`, including direct/fallback routes and favicon/metadata.
 
@@ -308,11 +343,10 @@ Unless the user prioritizes another slice, develop in this order:
 
 1. Harden v1 golden compatibility tests and exportable SVG metadata.
 2. Add handle-to-DID resolution while continuing to hash only the resolved DID.
-3. Implement narrowly scoped AT Protocol OAuth for `hasharium.croft.click`.
-4. Replace/augment the local study tray with confirmed
-   `click.croft.hasharium.collection.entry` writes and public repository reads.
-5. Add deterministic pair intersections with reciprocal-status evidence.
-6. Add authored exhibitions and public discovery through verified records/backlinks.
+3. Add deterministic pair intersections with reciprocal-status evidence.
+4. Add authored exhibitions and public discovery through verified records/backlinks.
+5. Consider replacing the three explicit same-namespace scopes with a published Hasharium
+   permission set once that improves authorization descriptions without broadening access.
 
 Each milestone must preserve a useful signed-out observation experience. Authentication should
 enhance collecting, not gate the core act of seeing a DID's form.

@@ -10,6 +10,10 @@ export interface ResolvedIdentity {
   handle?: string;
 }
 
+export interface IdentityProfile extends ResolvedIdentity {
+  pds?: string;
+}
+
 export class IdentityResolutionError extends Error {
   constructor(message: string) {
     super(message);
@@ -41,21 +45,30 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-export async function resolveIdentity(
-  value: string,
-  fetcher: typeof fetch = fetch,
-): Promise<ResolvedIdentity> {
-  const identifier = value.trim();
-  if (isDid(identifier)) return { did: identifier };
-  if (!isHandle(identifier)) {
-    throw new IdentityResolutionError(
-      `Enter a complete DID or handle, such as ${PLACEHOLDER_DID}.`,
-    );
+function publicHttpsOrigin(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      url.pathname === "/" &&
+      !url.search &&
+      !url.hash
+      ? url.origin
+      : undefined;
+  } catch {
+    return undefined;
   }
+}
 
-  const handle = normalizeHandle(identifier);
+async function fetchMiniDoc(
+  identifier: string,
+  fetcher: typeof fetch,
+): Promise<Record<string, unknown>> {
   const url = new URL(RESOLVER_ENDPOINT);
-  url.searchParams.set("identifier", handle);
+  url.searchParams.set("identifier", identifier);
 
   let response: Response;
   try {
@@ -66,15 +79,15 @@ export async function resolveIdentity(
     });
   } catch {
     throw new IdentityResolutionError(
-      "That handle could not be resolved right now. Check it and try again.",
+      "That identity could not be resolved right now. Check it and try again.",
     );
   }
 
   if (!response.ok) {
     throw new IdentityResolutionError(
       response.status === 404
-        ? "No decentralised identity was found for that handle."
-        : "That handle could not be resolved right now. Check it and try again.",
+        ? "No decentralised identity was found for that identifier."
+        : "That identity could not be resolved right now. Check it and try again.",
     );
   }
 
@@ -110,6 +123,58 @@ export async function resolveIdentity(
       "The identity resolver returned an invalid response.",
     );
   }
+  return payload;
+}
 
-  return { did: payload.did, handle };
+export async function resolveIdentity(
+  value: string,
+  fetcher: typeof fetch = fetch,
+): Promise<ResolvedIdentity> {
+  const identifier = value.trim();
+  if (isDid(identifier)) return { did: identifier };
+  if (!isHandle(identifier)) {
+    throw new IdentityResolutionError(
+      `Enter a complete DID or handle, such as ${PLACEHOLDER_DID}.`,
+    );
+  }
+
+  const handle = normalizeHandle(identifier);
+  const payload = await fetchMiniDoc(handle, fetcher);
+
+  return { did: payload.did as string, handle };
+}
+
+export async function resolveIdentityProfile(
+  value: string,
+  fetcher: typeof fetch = fetch,
+): Promise<IdentityProfile> {
+  const identifier = value.trim();
+  if (!isDid(identifier) && !isHandle(identifier)) {
+    throw new IdentityResolutionError(
+      `Enter a complete DID or handle, such as ${PLACEHOLDER_DID}.`,
+    );
+  }
+
+  const normalized = isDid(identifier)
+    ? identifier
+    : normalizeHandle(identifier);
+  const payload = await fetchMiniDoc(normalized, fetcher);
+  if (isDid(identifier) && payload.did !== identifier) {
+    throw new IdentityResolutionError(
+      "The identity resolver returned a different DID.",
+    );
+  }
+
+  const handle =
+    typeof payload.handle === "string" && isHandle(payload.handle)
+      ? normalizeHandle(payload.handle)
+      : isHandle(identifier)
+        ? normalizeHandle(identifier)
+        : undefined;
+  const pds = publicHttpsOrigin(payload.pds);
+  return {
+    did: payload.did as string,
+    ...(handle ? { handle } : {}),
+    ...(pds ? { pds } : {}),
+  };
 }

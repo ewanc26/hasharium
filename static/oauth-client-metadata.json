@@ -1,0 +1,15 @@
+{
+  "client_id": "https://hasharium.croft.click/oauth-client-metadata.json",
+  "client_name": "Hasharium",
+  "client_uri": "https://hasharium.croft.click",
+  "logo_uri": "https://hasharium.croft.click/favicon.svg",
+  "tos_uri": "https://hasharium.croft.click/about",
+  "policy_uri": "https://hasharium.croft.click/about",
+  "redirect_uris": ["https://hasharium.croft.click/profile"],
+  "scope": "atproto repo:click.croft.hasharium.collection.entry repo:click.croft.hasharium.exhibition repo:click.croft.hasharium.intersection",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "token_endpoint_auth_method": "none",
+  "application_type": "web",
+  "dpop_bound_access_tokens": true
+}
