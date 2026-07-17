@@ -7,11 +7,9 @@ describe("collector API function", () => {
   it("rejects non-DID subjects without consulting the index", async () => {
     const fetcher = vi.fn();
     vi.stubGlobal("fetch", fetcher);
-    const response = await GET(
-      new Request(
-        "https://hasharium.croft.click/api/collectors?did=ewancroft.uk",
-      ),
-    );
+    const response = await GET({
+      url: "/api/collectors?did=ewancroft.uk",
+    } as Request);
     expect(response.status).toBe(400);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(fetcher).not.toHaveBeenCalled();

@@ -13,7 +13,10 @@ function json(body: unknown, status: number, cacheControl: string): Response {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const subject = new URL(request.url).searchParams.get("did")?.trim() ?? "";
+  const subject =
+    new URL(request.url, "https://hasharium.croft.click").searchParams
+      .get("did")
+      ?.trim() ?? "";
   if (!isDid(subject)) {
     return json(
       { error: "The did parameter must be a complete DID." },
