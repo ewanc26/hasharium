@@ -314,8 +314,9 @@ its real surface.
 
 - The current adapter is static and writes `build/` with a `404.html` fallback. Keep README and
   hosting configuration aligned if this changes.
-- `vercel.json` explicitly selects `pnpm build` and the `build/` output directory. Preserve this
-  static contract unless the application intentionally moves to Vercel's server adapter.
+- `vercel.json` explicitly selects `pnpm build`, the `build/` output directory, and clean URLs so
+  `/profile` and `/about` resolve to their prerendered HTML files. Preserve this static contract
+  unless the application intentionally moves to Vercel's server adapter.
 - Production must use HTTPS at `hasharium.croft.click`. DNS, TLS, CDN/cache rules, and the deployed
   artifact are operator state outside a local build; inspect them before reporting deployment done.
 - Static assets may be cached aggressively when fingerprinted. HTML and client/OAuth metadata need
