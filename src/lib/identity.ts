@@ -1,4 +1,5 @@
 import { isDid } from "./shape";
+import { PLACEHOLDER_DID } from "./protocol";
 
 const RESOLVER_ENDPOINT =
   "https://slingshot.microcosm.blue/xrpc/blue.microcosm.identity.resolveMiniDoc";
@@ -48,7 +49,7 @@ export async function resolveIdentity(
   if (isDid(identifier)) return { did: identifier };
   if (!isHandle(identifier)) {
     throw new IdentityResolutionError(
-      "Enter a complete DID or handle, such as did:plc:… or alice.example.",
+      `Enter a complete DID or handle, such as ${PLACEHOLDER_DID}.`,
     );
   }
 

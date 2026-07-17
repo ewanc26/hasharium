@@ -3,10 +3,10 @@
   import SpecimenView from '$lib/components/Specimen.svelte';
   import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
   import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
-  import { GENERATOR_VERSION, NSID, SOURCE_URL } from '$lib/protocol';
+  import { GENERATOR_VERSION, NSID, PLACEHOLDER_DID, SOURCE_URL } from '$lib/protocol';
   import { generateSpecimen, isDid, type Specimen } from '$lib/shape';
 
-  const defaultDid = 'did:plc:ewvi7nxzyoun6zhxrhs64oiz';
+  const defaultDid = PLACEHOLDER_DID;
   const exampleDids = [
     'did:plc:ar7c4by46qjdydhdevvrndac',
     'did:plc:z72i7hdynmk6r22z27h6tvur',
@@ -177,7 +177,7 @@
               id="did"
               bind:value={input}
               maxlength="2048"
-              placeholder="did:plc:… or alice.example"
+              placeholder={PLACEHOLDER_DID}
               spellcheck="false"
               autocomplete="off"
             />

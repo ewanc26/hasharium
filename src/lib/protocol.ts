@@ -1,6 +1,7 @@
 export const HASHARIUM_HOST = "hasharium.croft.click";
 export const SOURCE_URL = "https://github.com/ewanc26/hasharium";
 export const GENERATOR_VERSION = "sha256-radial-v1";
+export const PLACEHOLDER_DID = "did:plc:ofrbh253gwicbkc5nktqepol";
 
 export const NSID = {
   collectionEntry: "click.croft.hasharium.collection.entry",
