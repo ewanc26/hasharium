@@ -77,6 +77,9 @@ contents of `build/` behind HTTPS and configure `hasharium.croft.click` as the c
 Because the current site is client-only, no application secrets or runtime server process are
 required.
 
+`vercel.json` pins the Vercel build command and `build/` output directory so Vercel does not apply
+its server-rendered SvelteKit defaults to this static-adapter project.
+
 `static/CNAME`, `robots.txt`, and `sitemap.xml` carry the canonical hostname into the static
 artifact. The `CNAME` file directly supports GitHub Pages; other hosts may ignore it and require
 their own domain configuration.
