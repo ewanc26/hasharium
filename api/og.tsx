@@ -289,7 +289,6 @@ export async function GET(request: Request): Promise<Response> {
       width: OG_IMAGE_WIDTH,
       height: OG_IMAGE_HEIGHT,
       headers: {
-        "Cache-Control": "public, immutable, no-transform, max-age=31536000",
         "Content-Disposition": `inline; filename="hasharium-${specimen.catalogueNumber.toLowerCase()}.png"`,
         "X-Content-Type-Options": "nosniff",
       },
