@@ -11,18 +11,20 @@ uploaded, or centrally assigned.
 
 ## Current state
 
-The first public prototype includes:
+The public prototype includes:
 
 - deterministic, accessible SVG specimens generated locally;
+- DID input and privacy-disclosed handle-to-DID resolution;
+- standalone SVG export with subject, fingerprint, catalogue, and generator metadata;
 - a specimen label and morphological traits;
 - a curated public cabinet of example identities;
 - a browser-local study tray;
 - static output suitable for deployment at `hasharium.croft.click`;
 - initial AT Protocol lexicons under the required `click.croft.hasharium.*` namespace.
 
-OAuth, handle resolution, PDS record writes, public collection loading, intersections, and
-exhibitions are deliberately not presented as working yet. The local study tray is a preview of
-the eventual signed collection experience.
+OAuth, PDS record writes, public collection loading, intersections, and exhibitions are
+deliberately not presented as working yet. The local study tray is a preview of the eventual signed
+collection experience.
 
 ## Development
 
@@ -49,6 +51,8 @@ The static production output is written to `build/`.
 
 ```text
 src/lib/shape.ts                    SHA-256-to-SVG renderer and morphology
+src/lib/identity.ts                 DID input and bounded handle resolution
+src/lib/export.ts                   standalone SVG and provenance metadata export
 src/lib/protocol.ts                 canonical host, NSIDs, and protocol constants
 src/lib/components/Specimen.svelte  accessible SVG presentation
 src/routes/+page.svelte             observation, cabinet, and study-tray interaction

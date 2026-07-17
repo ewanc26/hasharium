@@ -43,6 +43,10 @@ leave documentation describing planned behavior as if it already exists.
 
 - `src/lib/shape.ts` owns DID validation, SHA-256 hashing, trait mapping, catalogue names,
   palettes, and path construction. It contains no Svelte or browser UI state.
+- `src/lib/identity.ts` validates friendly handles and resolves them to canonical DIDs without
+  changing the generator's DID-only input contract.
+- `src/lib/export.ts` serializes portable specimen SVGs and provenance metadata. Export changes
+  must preserve well-formed XML and keep subject DIDs escaped as untrusted text.
 - `src/lib/shape.test.ts` protects deterministic output, validation, and trait bounds.
 - `src/lib/protocol.ts` is the canonical TypeScript source for the production hostname,
   generator version, and every application NSID used by runtime code.
@@ -107,8 +111,10 @@ Rules:
 
 ## AT Protocol and authentication boundaries
 
-The checked-in prototype does not yet authenticate or write repository records. Until that work
-lands, the study tray is explicitly browser-local and must not imply that it follows the user.
+The checked-in prototype resolves handles through Microcosm Slingshot but does not yet authenticate
+or write repository records. Until that work lands, the study tray is explicitly browser-local and
+must not imply that it follows the user. Copy must disclose that handle resolution is a network
+request while direct DID generation remains local.
 
 When implementing the PDS-backed milestone:
 

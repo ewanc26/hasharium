@@ -450,7 +450,14 @@ input:focus-visible {
   white-space: nowrap;
 }
 
-.specimen-label button {
+.specimen-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.specimen-actions button {
   display: inline-flex;
   flex: 0 0 auto;
   gap: 8px;
@@ -466,19 +473,19 @@ input:focus-visible {
   text-transform: uppercase;
 }
 
-.specimen-label button.saved {
+.specimen-actions button.saved {
   color: var(--red);
   border-color: var(--red);
 }
 
-.specimen-label button svg {
+.specimen-actions button svg {
   width: 13px;
   fill: none;
   stroke: currentcolor;
   stroke-width: 1.4;
 }
 
-.specimen-label button.saved svg {
+.specimen-actions button.saved svg {
   fill: currentcolor;
 }
 
@@ -955,7 +962,11 @@ footer p:last-child {
     align-items: start;
   }
 
-  .specimen-label button {
+  .specimen-actions {
+    gap: 10px;
+  }
+
+  .specimen-actions button {
     width: 42px;
     overflow: hidden;
     white-space: nowrap;

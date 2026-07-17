@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import SpecimenView from '$lib/components/Specimen.svelte';
+  import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
+  import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
   import { GENERATOR_VERSION, NSID, SOURCE_URL } from '$lib/protocol';
   import { generateSpecimen, isDid, type Specimen } from '$lib/shape';
 
@@ -22,6 +24,7 @@
   let error = $state('');
   let loading = $state(true);
   let cabinetOpen = $state(false);
+  let resolvedHandle = $state('');
   let renderRequest = 0;
   let isSaved = $derived(specimen ? savedDids.includes(specimen.did) : false);
 
@@ -56,17 +59,25 @@
 
   async function renderIdentity() {
     error = '';
-    if (!isDid(input)) {
-      error = 'Enter a complete DID, such as did:plc:… or did:web:…';
-      return;
-    }
     const request = ++renderRequest;
     loading = true;
-    const next = await generateSpecimen(input);
-    if (request === renderRequest) {
-      specimen = next;
-      input = next.did;
-      loading = false;
+    try {
+      const identity = await resolveIdentity(input);
+      const next = await generateSpecimen(identity.did);
+      if (request === renderRequest) {
+        specimen = next;
+        input = next.did;
+        resolvedHandle = identity.handle ?? '';
+      }
+    } catch (reason) {
+      if (request === renderRequest) {
+        error =
+          reason instanceof IdentityResolutionError
+            ? reason.message
+            : 'This identity could not be observed right now.';
+      }
+    } finally {
+      if (request === renderRequest) loading = false;
     }
   }
 
@@ -78,6 +89,7 @@
   async function selectSpecimen(next: Specimen) {
     specimen = next;
     input = next.did;
+    resolvedHandle = '';
     error = '';
     document.querySelector('#specimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -89,6 +101,20 @@
       : [...savedDids, specimen.did];
     localStorage.setItem('hasharium.study-tray', JSON.stringify(savedDids));
     await hydrateSaved(savedDids);
+  }
+
+  function downloadSpecimen() {
+    if (!specimen) return;
+    const blob = new Blob([exportSpecimenSvg(specimen)], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = specimenExportFilename(specimen);
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   function closeOnBackdrop(event: MouseEvent) {
@@ -144,13 +170,14 @@
         </p>
 
         <form class="did-form" onsubmit={submit} novalidate>
-          <label for="did">Enter a decentralised identifier</label>
+          <label for="did">Enter a decentralised identifier or handle</label>
           <div class="input-row" class:invalid={Boolean(error)}>
-            <span aria-hidden="true">DID</span>
+            <span aria-hidden="true">ID</span>
             <input
               id="did"
               bind:value={input}
               maxlength="2048"
+              placeholder="did:plc:… or alice.example"
               spellcheck="false"
               autocomplete="off"
             />
@@ -160,7 +187,10 @@
             </button>
           </div>
           <p class="form-message" class:error role="status">
-            {error || 'No account or sign-in required. The identifier never leaves your browser.'}
+            {error ||
+              (resolvedHandle
+                ? `Resolved @${resolvedHandle} to ${specimen?.did ?? 'its canonical DID'}.`
+                : 'DIDs stay local. Handles use Microcosm Slingshot for DID resolution; no sign-in required.')}
           </p>
         </form>
       </div>
@@ -186,15 +216,23 @@
               <h2>{specimen.name}</h2>
               <code>{specimen.did}</code>
             </div>
-            <button
-              class:saved={isSaved}
-              type="button"
-              onclick={() => void toggleSaved()}
-              aria-pressed={isSaved}
-            >
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h12v14l-6-3-6 3V3Z" /></svg>
-              {isSaved ? 'In study tray' : 'Keep specimen'}
-            </button>
+            <div class="specimen-actions">
+              <button type="button" onclick={downloadSpecimen} aria-label="Export specimen as SVG">
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M10 2v11M6 9l4 4 4-4M3 16h14" />
+                </svg>
+                Export SVG
+              </button>
+              <button
+                class:saved={isSaved}
+                type="button"
+                onclick={() => void toggleSaved()}
+                aria-pressed={isSaved}
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h12v14l-6-3-6 3V3Z" /></svg>
+                {isSaved ? 'In study tray' : 'Keep specimen'}
+              </button>
+            </div>
           </div>
           <dl class="traits">
             <div><dt>Symmetry</dt><dd>{specimen.symmetry}-fold</dd></div>
@@ -246,7 +284,7 @@
       <ol class="method-steps">
         <li>
           <span>01</span>
-          <div><strong>Identify</strong><p>A complete DID is accepted exactly as written.</p></div>
+          <div><strong>Identify</strong><p>Use a DID directly, or resolve a handle to its canonical DID.</p></div>
         </li>
         <li>
           <span>02</span>
@@ -254,7 +292,7 @@
         </li>
         <li>
           <span>03</span>
-          <div><strong>Observe</strong><p>SVG geometry is drawn locally and remains reproducible.</p></div>
+          <div><strong>Observe</strong><p>SVG geometry is drawn locally, reproducible, and exportable.</p></div>
         </li>
         <li>
           <span>04</span>
