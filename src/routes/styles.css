@@ -419,6 +419,34 @@ textarea:focus-visible {
   color: #a43e28;
 }
 
+.version-select {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  margin: 16px 0 0;
+}
+
+.version-select span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #727b76;
+}
+
+.version-select select {
+  appearance: none;
+  min-height: var(--control-size);
+  padding: 0 var(--space-lg) 0 var(--space-md);
+  color: var(--ink);
+  cursor: pointer;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .observation-column {
   position: relative;
   width: min(100%, 620px);

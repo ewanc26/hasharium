@@ -59,7 +59,7 @@ The static production output is written to `build/`.
 ## Architecture
 
 ```text
-src/lib/shape.ts                    SHA-256-to-SVG renderer and morphology
+src/lib/shape.ts                    SHA-256-to-SVG renderers (v1 and v2) and morphology
 src/lib/identity.ts                 DID input and bounded handle resolution
 src/lib/export.ts                   standalone SVG and provenance metadata export
 src/lib/oauth-config.ts             production/loopback OAuth identifiers and bounded scopes
@@ -78,8 +78,13 @@ api/collectors.ts                    cached public collector-discovery function
 lexicons/click/croft/hasharium/     AT Protocol lexicon sources
 ```
 
-The generator version is `sha256-radial-v1`. Its output is a public compatibility contract. Any
-intentional visual algorithm change must use a new version instead of mutating old specimens.
+The default generator version is `sha256-radial-v1`. Its output is a public compatibility contract.
+Any intentional visual algorithm change must use a new version instead of mutating old specimens.
+A second rendition, `sha256-radial-v2`, derives wider variety from the same SHA-256 digest using a
+hash-seeded PRNG: broader symmetry (3–11), more layers (2–6), eight extra palettes, per-petal
+pinch/wobble, and free rotation. The observation page offers a rendition selector; the same DID and
+version always reproduce the same specimen. Social cards at `/api/og` remain pinned to v1 so their
+PNGs stay immutable and cacheable.
 
 ## Protocol namespace
 

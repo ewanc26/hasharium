@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { generateSpecimen, hashIdentity, isDid } from "./shape";
+import {
+  generateSpecimen,
+  generateSpecimenV2,
+  hashIdentity,
+  isDid,
+} from "./shape";
 
 describe("DID validation", () => {
   it("accepts common DID methods", () => {
@@ -90,6 +95,47 @@ describe("specimen generation", () => {
     expect(specimen.layers).toBeLessThanOrEqual(4);
     expect(specimen.paths).toHaveLength(specimen.layers);
     expect(specimen.catalogueNumber).toMatch(/^H-[A-F0-9]{4}-[A-F0-9]{4}$/);
+  });
+
+  it("exposes a v2 rendition with wider variety and stable output", async () => {
+    const first = await generateSpecimenV2("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+    const second = await generateSpecimenV2("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+    expect(second).toEqual(first);
+    expect(first.generatorVersion).toBe("sha256-radial-v2");
+    expect(first.symmetry).toBeGreaterThanOrEqual(3);
+    expect(first.symmetry).toBeLessThanOrEqual(11);
+    expect(first.layers).toBeGreaterThanOrEqual(2);
+    expect(first.layers).toBeLessThanOrEqual(6);
+    expect(first.paths).toHaveLength(first.layers);
+    expect(
+      first.paths.every((path) => path.startsWith("M ") && path.endsWith(" Z")),
+    ).toBe(true);
+  });
+
+  it("gives v2 meaningfully different geometry from v1", async () => {
+    const v1 = await generateSpecimen("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+    const v2 = await generateSpecimenV2("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+    expect(v2.fingerprint).toBe(v1.fingerprint);
+    expect(v2.name).not.toBe(v1.name);
+    expect(v2.paths).not.toEqual(v1.paths);
+  });
+
+  it("preserves the v2 golden output for $did", async () => {
+    const expected = {
+      did: "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      fingerprint:
+        "099e4ea96cd62c05a232331859d20c97425f25b21f193068b1abf7b763e40ed1",
+      catalogueNumber: "H-099E-4EA9",
+      name: "Singing Facet",
+      symmetry: 11,
+      layers: 3,
+      aperture: 36,
+      material: "glass" as const,
+      temperament: "opening",
+    };
+    const specimen = await generateSpecimenV2(expected.did);
+    expect(specimen).toMatchObject(expected);
+    expect(specimen.generatorVersion).toBe("sha256-radial-v2");
   });
 
   it("trims surrounding whitespace without changing DID character case", async () => {

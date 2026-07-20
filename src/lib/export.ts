@@ -1,4 +1,4 @@
-import { GENERATOR_VERSION, SOURCE_URL } from "./protocol";
+import { SOURCE_URL } from "./protocol";
 import type { Specimen } from "./shape";
 
 export interface SpecimenExportMetadata {
@@ -7,7 +7,7 @@ export interface SpecimenExportMetadata {
   fingerprint: string;
   catalogueNumber: string;
   name: string;
-  generatorVersion: typeof GENERATOR_VERSION;
+  generatorVersion: Specimen["generatorVersion"];
   source: typeof SOURCE_URL;
 }
 
@@ -33,7 +33,7 @@ export function specimenExportMetadata(
     fingerprint: specimen.fingerprint,
     catalogueNumber: specimen.catalogueNumber,
     name: specimen.name,
-    generatorVersion: GENERATOR_VERSION,
+    generatorVersion: specimen.generatorVersion,
     source: SOURCE_URL,
   };
 }

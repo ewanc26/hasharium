@@ -1,10 +1,12 @@
 import type { Agent } from "@atproto/api";
 import {
   GENERATOR_VERSION,
+  GENERATOR_VERSIONS,
   NSID,
   type CollectionEntryRecord,
+  type GeneratorVersion,
 } from "./protocol.js";
-import { isDid } from "./shape.js";
+import { isDid, isGeneratorVersion } from "./shape.js";
 
 const MAX_RECORD_PAGES = 10;
 
@@ -53,7 +55,7 @@ export function parseCollectionEntryRecord(
     !isDid(value.subject) ||
     !isDateTime(value.createdAt) ||
     (value.generatorVersion !== undefined &&
-      value.generatorVersion !== GENERATOR_VERSION) ||
+      !isGeneratorVersion(value.generatorVersion)) ||
     (value.note !== undefined &&
       (typeof value.note !== "string" ||
         validateCollectionNote(value.note) !== undefined))
@@ -65,8 +67,8 @@ export function parseCollectionEntryRecord(
     $type: NSID.collectionEntry,
     subject: value.subject,
     createdAt: value.createdAt,
-    ...(value.generatorVersion === GENERATOR_VERSION
-      ? { generatorVersion: GENERATOR_VERSION }
+    ...(isGeneratorVersion(value.generatorVersion)
+      ? { generatorVersion: value.generatorVersion }
       : {}),
     ...(typeof value.note === "string" ? { note: value.note } : {}),
   };
@@ -129,6 +131,7 @@ export async function createCollectionEntry(
   agent: Agent,
   subject: string,
   note = "",
+  generatorVersion: GeneratorVersion = GENERATOR_VERSION,
 ): Promise<CollectionEntry> {
   if (!isDid(subject)) throw new Error("The specimen subject is not a DID.");
   const normalizedNote = note.trim();
@@ -138,7 +141,7 @@ export async function createCollectionEntry(
   const record: CollectionEntryRecord = {
     $type: NSID.collectionEntry,
     subject,
-    generatorVersion: GENERATOR_VERSION,
+    generatorVersion,
     createdAt: new Date().toISOString(),
     ...(normalizedNote ? { note: normalizedNote } : {}),
   };

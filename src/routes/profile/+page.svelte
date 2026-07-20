@@ -19,7 +19,11 @@
     signOutOfOAuth
   } from '$lib/oauth';
   import { NSID, PLACEHOLDER_DID } from '$lib/protocol';
-  import { generateSpecimen, type Specimen } from '$lib/shape';
+  import {
+    generateSpecimenForVersion,
+    type GeneratorVersion,
+    type Specimen
+  } from '$lib/shape';
 
   interface CabinetEntry {
     entry: CollectionEntry;
@@ -64,13 +68,16 @@
     try {
       const [nextIdentity, ownSpecimen, entries] = await Promise.all([
         resolveIdentityProfile(did).catch(() => ({ did })),
-        generateSpecimen(did),
+        generateSpecimenForVersion(did, 'sha256-radial-v1'),
         listCollectionEntries(agent)
       ]);
       const nextCabinet = await Promise.all(
         entries.map(async (entry) => ({
           entry,
-          specimen: await generateSpecimen(entry.record.subject)
+          specimen: await generateSpecimenForVersion(
+            entry.record.subject,
+            (entry.record.generatorVersion ?? 'sha256-radial-v1') as GeneratorVersion
+          )
         }))
       );
       if (request === loadRequest) {
@@ -124,7 +131,13 @@
         throw new Error('That specimen is already present in this profile cabinet.');
       }
       const entry = await createCollectionEntry(current.agent, resolved.did, fieldNote);
-      cabinet = [{ entry, specimen: await generateSpecimen(resolved.did) }, ...cabinet];
+      cabinet = [
+        {
+          entry,
+          specimen: await generateSpecimenForVersion(resolved.did, 'sha256-radial-v1')
+        },
+        ...cabinet
+      ];
       collectIdentifier = resolved.did;
       fieldNote = '';
       message = `Collected ${resolved.did}. The PDS confirmed the record.`;

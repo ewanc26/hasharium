@@ -14,8 +14,14 @@
   import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
   import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
   import { authState } from '$lib/oauth';
-  import { GENERATOR_VERSION, NSID, PLACEHOLDER_DID } from '$lib/protocol';
-  import { generateSpecimen, isDid, type Specimen } from '$lib/shape';
+  import { GENERATOR_VERSIONS, NSID, PLACEHOLDER_DID } from '$lib/protocol';
+  import {
+    generateSpecimenForVersion,
+    isDid,
+    isGeneratorVersion,
+    type GeneratorVersion,
+    type Specimen
+  } from '$lib/shape';
 
   const defaultDid = PLACEHOLDER_DID;
   const exampleDids = [
@@ -42,6 +48,7 @@
   let collectionMessage = $state('');
   let pendingRemoteRemovalDid = $state('');
   let renderRequest = 0;
+  let generatorVersion = $state<GeneratorVersion>('sha256-radial-v1');
   let remoteEntry = $derived(
     specimen ? remoteEntries.find((entry) => entry.record.subject === specimen?.did) : undefined
   );
@@ -65,7 +72,9 @@
   });
 
   async function hydrateSaved(dids: string[]) {
-    savedSpecimens = await Promise.all(dids.map((did) => generateSpecimen(did)));
+    savedSpecimens = await Promise.all(
+      dids.map((did) => generateSpecimenForVersion(did, generatorVersion))
+    );
   }
 
   async function hydrateRemoteCollection(agent: Agent) {
@@ -81,12 +90,14 @@
   }
 
   async function initialize() {
+    const sharedVersion = new URL(window.location.href).searchParams.get('version');
+    if (isGeneratorVersion(sharedVersion)) generatorVersion = sharedVersion;
     const sharedDid = new URL(window.location.href).searchParams.get('did');
     const initialDid = sharedDid && isDid(sharedDid) ? sharedDid : defaultDid;
     input = initialDid;
     [specimen, examples] = await Promise.all([
-      generateSpecimen(initialDid),
-      Promise.all(exampleDids.map((did) => generateSpecimen(did)))
+      generateSpecimenForVersion(initialDid, generatorVersion),
+      Promise.all(exampleDids.map((did) => generateSpecimenForVersion(did, generatorVersion)))
     ]);
 
     const stored = localStorage.getItem('hasharium.study-tray');
@@ -114,11 +125,11 @@
     loading = true;
     try {
       const identity = await resolveIdentity(input);
-      const next = await generateSpecimen(identity.did);
+      const next = await generateSpecimenForVersion(identity.did, generatorVersion);
       if (request === renderRequest) {
         specimen = next;
         input = next.did;
-        window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}`);
+        window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}&version=${generatorVersion}`);
         resolvedHandle = identity.handle ?? '';
         pendingRemoteRemovalDid = '';
       }
@@ -139,13 +150,27 @@
     void renderIdentity();
   }
 
+  async function rerender() {
+    if (!specimen) return;
+    error = '';
+    loading = true;
+    try {
+      const next = await generateSpecimenForVersion(specimen.did, generatorVersion);
+      specimen = next;
+      window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}&version=${generatorVersion}`);
+      await hydrateSaved(savedDids);
+    } finally {
+      loading = false;
+    }
+  }
+
   async function selectSpecimen(next: Specimen) {
-    specimen = next;
+    specimen = await generateSpecimenForVersion(next.did, generatorVersion);
     input = next.did;
     resolvedHandle = '';
     error = '';
     pendingRemoteRemovalDid = '';
-    window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}`);
+    window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}&version=${generatorVersion}`);
     document.querySelector('#specimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
@@ -167,7 +192,12 @@
           pendingRemoteRemovalDid = '';
           collectionMessage = 'The PDS confirmed removal from your profile cabinet.';
         } else {
-          const entry = await createCollectionEntry(current.agent, specimen.did);
+          const entry = await createCollectionEntry(
+            current.agent,
+            specimen.did,
+            '',
+            specimen.generatorVersion
+          );
           remoteEntries = [entry, ...remoteEntries];
           collectionMessage = 'The PDS confirmed this specimen in your profile cabinet.';
         }
@@ -265,6 +295,18 @@
                 ? `Resolved @${resolvedHandle} to ${specimen?.did ?? 'its canonical DID'}.`
                 : 'DIDs stay local. Handles use Microcosm Slingshot for DID resolution; no sign-in required.')}
           </p>
+          <label class="version-select" for="generator-version">
+            <span>Rendition</span>
+            <select
+              id="generator-version"
+              bind:value={generatorVersion}
+              onchange={() => void rerender()}
+            >
+              {#each GENERATOR_VERSIONS as version}
+                <option value={version}>{version}</option>
+              {/each}
+            </select>
+          </label>
         </form>
       </div>
 
@@ -391,7 +433,7 @@
       <div class="protocol-strip">
         <span>PROTOCOL NOTE</span>
         <code>{NSID.collectionEntry}</code>
-        <span>GENERATOR {GENERATOR_VERSION}</span>
+        <span>GENERATOR {generatorVersion}</span>
       </div>
     </section>
   </main>
