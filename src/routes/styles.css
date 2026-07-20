@@ -599,6 +599,18 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+.rendition-tag {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 3px 8px;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
 .specimen-actions {
   display: flex;
   flex: 0 0 auto;

@@ -330,6 +330,7 @@
               <span class="catalogue-number">{specimen.catalogueNumber}</span>
               <h2>{specimen.name}</h2>
               <code>{specimen.did}</code>
+              <span class="rendition-tag">{specimen.generatorVersion}</span>
             </div>
             <div class="specimen-actions">
               <button type="button" onclick={downloadSpecimen} aria-label="Export specimen as SVG">
