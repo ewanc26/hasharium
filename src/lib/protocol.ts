@@ -8,6 +8,15 @@ export const GENERATOR_VERSIONS = [
 export type GeneratorVersion = (typeof GENERATOR_VERSIONS)[number];
 export const PLACEHOLDER_DID = "did:plc:ofrbh253gwicbkc5nktqepol";
 
+/**
+ * Builds an absolute production URL for a site path. Canonical and Open Graph
+ * metadata must be absolute, and the prerendered static build has no request
+ * origin available, so the canonical host is the only correct source.
+ */
+export function canonicalUrl(path = "/"): string {
+  return new URL(path, `https://${HASHARIUM_HOST}`).href;
+}
+
 export const NSID = {
   collectionEntry: "click.croft.hasharium.collection.entry",
   exhibition: "click.croft.hasharium.exhibition",

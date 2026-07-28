@@ -1,7 +1,7 @@
 <script lang="ts">
   import Masthead from '$lib/components/Masthead.svelte';
   import SiteFooter from '$lib/components/SiteFooter.svelte';
-  import { NSID, SOURCE_URL } from '$lib/protocol';
+  import { canonicalUrl, NSID, SOURCE_URL } from '$lib/protocol';
 </script>
 
 <svelte:head>
@@ -10,6 +10,8 @@
     name="description"
     content="How Hasharium derives identity specimens, handles OAuth sessions, and stores collection records."
   />
+  <link rel="canonical" href={canonicalUrl('/about')} />
+  <meta property="og:url" content={canonicalUrl('/about')} />
   <meta property="og:title" content="About, privacy and terms — Hasharium" />
   <meta
     property="og:description"

@@ -18,7 +18,7 @@
     signInWithOAuth,
     signOutOfOAuth
   } from '$lib/oauth';
-  import { NSID, PLACEHOLDER_DID } from '$lib/protocol';
+  import { canonicalUrl, NSID, PLACEHOLDER_DID } from '$lib/protocol';
   import {
     generateSpecimenForVersion,
     type GeneratorVersion,
@@ -176,6 +176,11 @@
     name="description"
     content="Sign in with an AT Protocol identity and keep a portable Hasharium specimen cabinet in your PDS."
   />
+  <link rel="canonical" href={canonicalUrl('/profile')} />
+  <!-- /profile is the OAuth callback surface. Callback URLs carry authorization
+       state and the page is per-visitor, so it must never be indexed. -->
+  <meta name="robots" content="noindex, follow" />
+  <meta property="og:url" content={canonicalUrl('/profile')} />
   <meta property="og:title" content="Your curator profile — Hasharium" />
   <meta
     property="og:description"
