@@ -14,7 +14,7 @@
   import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
   import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
   import { authState } from '$lib/oauth';
-  import { GENERATOR_VERSIONS, NSID, PLACEHOLDER_DID } from '$lib/protocol';
+  import { canonicalUrl, GENERATOR_VERSIONS, NSID, PLACEHOLDER_DID } from '$lib/protocol';
   import {
     generateSpecimenForVersion,
     isDid,
@@ -48,6 +48,8 @@
   let collectionMessage = $state('');
   let pendingRemoteRemovalDid = $state('');
   let renderRequest = 0;
+  let trayDialog = $state<HTMLDivElement | null>(null);
+  let trayReturnFocus: HTMLElement | null = null;
   let generatorVersion = $state<GeneratorVersion>('sha256-radial-v1');
   let remoteEntry = $derived(
     specimen ? remoteEntries.find((entry) => entry.record.subject === specimen?.did) : undefined
@@ -171,7 +173,10 @@
     error = '';
     pendingRemoteRemovalDid = '';
     window.history.replaceState(null, '', `/?did=${encodeURIComponent(next.did)}&version=${generatorVersion}`);
-    document.querySelector('#specimen')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.querySelector('#specimen')?.scrollIntoView({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'center'
+    });
   }
 
   async function toggleSaved() {
@@ -230,12 +235,59 @@
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
+  function prefersReducedMotion(): boolean {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  }
+
+  function openTray() {
+    trayReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    cabinetOpen = true;
+  }
+
+  function closeTray() {
+    cabinetOpen = false;
+    trayReturnFocus?.focus();
+    trayReturnFocus = null;
+  }
+
+  function trayFocusables(): HTMLElement[] {
+    if (!trayDialog) return [];
+    return [...trayDialog.querySelectorAll<HTMLElement>('button, [href], input, select, textarea')].filter(
+      (element) => !element.hasAttribute('disabled') && element.tabIndex !== -1
+    );
+  }
+
+  // Move focus into the dialog when it opens so keyboard and screen-reader users
+  // are not left behind on the masthead trigger.
+  $effect(() => {
+    if (cabinetOpen && trayDialog) trayFocusables()[0]?.focus();
+  });
+
   function closeOnBackdrop(event: MouseEvent) {
-    if (event.target === event.currentTarget) cabinetOpen = false;
+    if (event.target === event.currentTarget) closeTray();
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && cabinetOpen) cabinetOpen = false;
+    if (!cabinetOpen) return;
+    if (event.key === 'Escape') {
+      closeTray();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const focusables = trayFocusables();
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    const inside = active instanceof Node && trayDialog?.contains(active);
+    if (event.shiftKey && (!inside || active === first)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (!inside || active === last)) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 </script>
 
@@ -247,6 +299,8 @@
     name="description"
     content="A living index of deterministic forms, generated from decentralised identities."
   />
+  <link rel="canonical" href={canonicalUrl('/')} />
+  <meta property="og:url" content={canonicalUrl('/')} />
   <meta property="og:title" content="Hasharium — identities, given form" />
   <meta
     property="og:description"
@@ -260,7 +314,7 @@
 </svelte:head>
 
 <div class="site-shell">
-  <Masthead trayCount={savedDids.length} onOpenTray={() => (cabinetOpen = true)} />
+  <Masthead trayCount={savedDids.length} onOpenTray={openTray} />
 
   <main id="main-content" tabindex="-1">
     <section class="hero" id="top" aria-labelledby="hero-title">
@@ -449,10 +503,11 @@
       role="dialog"
       aria-modal="true"
       aria-labelledby="tray-title"
+      bind:this={trayDialog}
     >
       <div class="tray-heading">
         <div><span>LOCAL COLLECTION</span><h2 id="tray-title">Study tray</h2></div>
-        <button type="button" onclick={() => (cabinetOpen = false)} aria-label="Close study tray">×</button>
+        <button type="button" onclick={closeTray} aria-label="Close study tray">×</button>
       </div>
       <p class="tray-note">
         These specimens live only in this browser. Sign in through Profile to keep confirmed public
@@ -464,8 +519,8 @@
             <button
               type="button"
               onclick={() => {
+                closeTray();
                 void selectSpecimen(item);
-                cabinetOpen = false;
               }}
             >
               <SpecimenView specimen={item} compact animate={false} />
