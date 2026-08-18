@@ -1,4 +1,5 @@
-import type { Agent } from "@atproto/api";
+import type { Client } from '@atproto/lex';
+import { com } from '@bsky/sdk/lexicons';
 import {
   GENERATOR_VERSION,
   GENERATOR_VERSIONS,
@@ -95,25 +96,28 @@ export function parseCollectionEntry(
 }
 
 export async function listCollectionEntries(
-  agent: Agent,
+  client: Client,
 ): Promise<CollectionEntry[]> {
   const entries: CollectionEntry[] = [];
   const seenCursors = new Set<string>();
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_RECORD_PAGES; page += 1) {
-    const response = await agent.com.atproto.repo.listRecords({
-      repo: agent.assertDid,
-      collection: NSID.collectionEntry,
-      limit: 100,
-      cursor,
-    });
-    for (const item of response.data.records) {
+    const response = await client.call(
+      com.atproto.repo.listRecords,
+      {
+        repo: client.assertDid,
+        collection: NSID.collectionEntry,
+        limit: 100,
+        cursor,
+      },
+    );
+    for (const item of response.records) {
       const entry = parseCollectionEntry(item.value, item.uri, item.cid);
       if (entry) entries.push(entry);
     }
 
-    cursor = response.data.cursor;
+    cursor = response.cursor;
     if (!cursor) break;
     if (seenCursors.has(cursor)) {
       throw new Error("The PDS repeated a collection cursor.");
@@ -128,7 +132,7 @@ export async function listCollectionEntries(
 }
 
 export async function createCollectionEntry(
-  agent: Agent,
+  client: Client,
   subject: string,
   note = "",
   generatorVersion: GeneratorVersion = GENERATOR_VERSION,
@@ -145,27 +149,33 @@ export async function createCollectionEntry(
     createdAt: new Date().toISOString(),
     ...(normalizedNote ? { note: normalizedNote } : {}),
   };
-  const response = await agent.com.atproto.repo.createRecord({
-    repo: agent.assertDid,
-    collection: NSID.collectionEntry,
-    record: { ...record },
-  });
+  const response = await client.call(
+    com.atproto.repo.createRecord,
+    {
+      repo: client.assertDid,
+      collection: NSID.collectionEntry,
+      record: { ...record },
+    },
+  );
   const entry = parseCollectionEntry(
     record,
-    response.data.uri,
-    response.data.cid,
+    response.uri,
+    response.cid,
   );
   if (!entry) throw new Error("The PDS returned an invalid collection record.");
   return entry;
 }
 
 export async function deleteCollectionEntry(
-  agent: Agent,
+  client: Client,
   entry: CollectionEntry,
 ): Promise<void> {
-  await agent.com.atproto.repo.deleteRecord({
-    repo: agent.assertDid,
-    collection: NSID.collectionEntry,
-    rkey: entry.rkey,
-  });
+  await client.call(
+    com.atproto.repo.deleteRecord,
+    {
+      repo: client.assertDid,
+      collection: NSID.collectionEntry,
+      rkey: entry.rkey,
+    },
+  );
 }

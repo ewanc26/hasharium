@@ -4,6 +4,8 @@ export const GENERATOR_VERSION = "sha256-radial-v1";
 export const GENERATOR_VERSIONS = [
   "sha256-radial-v1",
   "sha256-radial-v2",
+  "sha256-radial-v3",
+  "sha256-radial-v4",
 ] as const;
 export type GeneratorVersion = (typeof GENERATOR_VERSIONS)[number];
 export const PLACEHOLDER_DID = "did:plc:ofrbh253gwicbkc5nktqepol";

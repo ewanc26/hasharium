@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Agent } from '@atproto/api';
+  import type { Client } from '@atproto/lex';
   import { onMount } from 'svelte';
   import Masthead from '$lib/components/Masthead.svelte';
   import CollectorRegister from '$lib/components/CollectorRegister.svelte';
@@ -66,7 +66,7 @@
     const current = $authState;
     if (current.status === 'signed-in' && current.did !== remoteLoadedDid) {
       remoteLoadedDid = current.did;
-      void hydrateRemoteCollection(current.agent);
+      void hydrateRemoteCollection(current.client);
     } else if (current.status === 'signed-out') {
       remoteLoadedDid = '';
       remoteEntries = [];
@@ -79,11 +79,11 @@
     );
   }
 
-  async function hydrateRemoteCollection(agent: Agent) {
+  async function hydrateRemoteCollection(client: Client) {
     collectionLoading = true;
     collectionMessage = '';
     try {
-      remoteEntries = await listCollectionEntries(agent);
+      remoteEntries = await listCollectionEntries(client);
     } catch (reason) {
       collectionMessage = reason instanceof Error ? reason.message : 'The PDS collection could not be read.';
     } finally {
@@ -192,13 +192,13 @@
             collectionMessage = 'Select “Confirm removal” to delete this record from your PDS.';
             return;
           }
-          await deleteCollectionEntry(current.agent, remoteEntry);
+          await deleteCollectionEntry(current.client, remoteEntry);
           remoteEntries = remoteEntries.filter((entry) => entry.uri !== remoteEntry?.uri);
           pendingRemoteRemovalDid = '';
           collectionMessage = 'The PDS confirmed removal from your profile cabinet.';
         } else {
           const entry = await createCollectionEntry(
-            current.agent,
+            current.client,
             specimen.did,
             '',
             specimen.generatorVersion

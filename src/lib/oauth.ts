@@ -1,5 +1,5 @@
 import { browser, dev } from "$app/environment";
-import type { Agent } from "@atproto/api";
+import type { Client } from '@atproto/lex';
 import type {
   BrowserOAuthClient,
   OAuthSession,
@@ -16,7 +16,7 @@ import { isDid } from "./shape";
 
 export type AuthState =
   | { status: "idle" | "loading" | "signed-out" | "authorizing" }
-  | { status: "signed-in"; did: string; agent: Agent; session: OAuthSession }
+  | { status: "signed-in"; did: string; client: Client; session: OAuthSession }
   | { status: "error"; message: string };
 
 export const authState = writable<AuthState>({ status: "idle" });
@@ -64,11 +64,11 @@ export async function initializeOAuth(): Promise<AuthState> {
         return state;
       }
 
-      const { Agent } = await import("@atproto/api");
+      const { Client } = await import("@atproto/lex");
       const state = {
         status: "signed-in",
         did: result.session.sub,
-        agent: new Agent(result.session),
+        client: new Client(result.session),
         session: result.session,
       } as const;
       authState.set(state);

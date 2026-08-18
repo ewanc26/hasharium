@@ -43,6 +43,10 @@ leave documentation describing planned behavior as if it already exists.
 
 - `src/lib/shape.ts` owns DID validation, SHA-256 hashing, trait mapping, catalogue names,
   palettes, and path construction. It contains no Svelte or browser UI state.
+- `src/lib/render.ts` owns the fill, opacity, blend-mode, and aperture formulas shared by
+  `Specimen.svelte` and `export.ts` so the on-screen specimen and its exported SVG always match.
+  Renditions before `sha256-radial-v4` leave its optional hint fields unset, so every function
+  falls back to the original fixed formulas and their visual output is unchanged.
 - `src/lib/identity.ts` validates friendly handles and resolves them to canonical DIDs without
   changing the generator's DID-only input contract.
 - `src/lib/oauth-config.ts` owns the discoverable production client ID, callback, handle resolver,
@@ -116,8 +120,14 @@ Rules:
   number must not.
 - Refactoring is allowed only if compatibility tests prove byte-for-byte equivalent output.
 - If an intentional algorithm or mapping change alters any existing specimen, add a new named
-  generator (for example `sha256-radial-v2`) and preserve a way to render v1 records. Do not
-  silently mutate `sha256-radial-v1`.
+  generator (for example `sha256-radial-v2` or `sha256-radial-v3`) and preserve a way to render
+  v1 records. Do not silently mutate `sha256-radial-v1`.
+- A v3 generator adds per-layer motif variety (radial, star, spiral, cross, diamond, gear),
+  expanded word pools, wider trait ranges, and additional palettes.
+- A v4 generator adds a procedurally generated (not list-selected) palette, independent per-layer
+  symmetry, a deterministic point-level warp, and hash-driven fill/opacity/blend-mode/aperture
+  rendering hints on the `Specimen` model. Rendering code must read these hints from the model,
+  never derive them by independently reinterpreting digest bytes.
 - A collection record stores the subject DID, not redundant SVG paths or derived traits. The
   optional `generatorVersion` identifies the historical rendition.
 - Rarity based solely on a DID hash is grindable because users can generate candidate DIDs. Do

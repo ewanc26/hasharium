@@ -16,5 +16,7 @@
     <a href="/about">About &amp; privacy</a>
     <a href="/font-licenses.txt">Font licences</a>
     <a href={SOURCE_URL}>Source · AGPL-3.0</a>
+    <a href="https://ko-fi.com/ewancroft">Ko-fi</a>
+    <a href="https://github.com/sponsors/ewanc26">GitHub Sponsors</a>
   </nav>
 </footer>

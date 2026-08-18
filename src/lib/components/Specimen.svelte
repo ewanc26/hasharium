@@ -1,5 +1,18 @@
 <script lang="ts">
   import type { Specimen } from '$lib/shape';
+  import {
+    apertureCenter,
+    apertureCoreFill,
+    apertureFill,
+    aperturePolygonPoints,
+    apertureStroke,
+    layerBlendMode,
+    layerFill,
+    layerFillOpacity,
+    layerStroke,
+    layerStrokeOpacity,
+    noiseFrequency
+  } from '$lib/render';
 
   let {
     specimen,
@@ -8,6 +21,8 @@
   }: { specimen: Specimen; compact?: boolean; animate?: boolean } = $props();
 
   const gradientId = $derived(`wash-${specimen.fingerprint.slice(0, 10)}`);
+  const aperturePolygon = $derived(aperturePolygonPoints(specimen));
+  const [apertureCx, apertureCy] = $derived(apertureCenter(specimen));
 </script>
 
 <svg
@@ -32,7 +47,7 @@
     <filter id={`${gradientId}-texture`} x="-15%" y="-15%" width="130%" height="130%">
       <feTurbulence
         type="fractalNoise"
-        baseFrequency="0.8"
+        baseFrequency={noiseFrequency(specimen)}
         numOctaves="2"
         seed={Number.parseInt(specimen.fingerprint.slice(0, 4), 16)}
         result="noise"
@@ -49,23 +64,38 @@
     {#each specimen.paths as path, index}
       <path
         d={path}
-        fill={index === 0 ? `url(#${gradientId})` : specimen.palette[(index + 1) % 3]}
-        fill-opacity={index === 0 ? 0.96 : 0.72 + index * 0.06}
-        stroke={index === specimen.paths.length - 1 ? '#f4eddb' : specimen.palette[2]}
-        stroke-opacity={index === specimen.paths.length - 1 ? 0.8 : 0.38}
+        fill={layerFill(specimen, index, gradientId)}
+        fill-opacity={layerFillOpacity(specimen, index)}
+        stroke={layerStroke(specimen, index)}
+        stroke-opacity={layerStrokeOpacity(specimen, index)}
         stroke-width={compact ? 1.6 : 1.2}
+        style={`mix-blend-mode: ${layerBlendMode(specimen, index)};`}
         filter={index === 0 && !compact ? `url(#${gradientId}-texture)` : undefined}
       />
     {/each}
+    {#if aperturePolygon}
+      <polygon
+        points={aperturePolygon}
+        fill={apertureFill(specimen)}
+        stroke={apertureStroke(specimen)}
+        stroke-width="2"
+      />
+    {:else}
+      <circle
+        cx={apertureCx}
+        cy={apertureCy}
+        r={specimen.aperture}
+        fill={apertureFill(specimen)}
+        stroke={apertureStroke(specimen)}
+        stroke-width="2"
+      />
+    {/if}
     <circle
-      cx="160"
-      cy="160"
-      r={specimen.aperture}
-      fill="#1c2925"
-      stroke={specimen.palette[1]}
-      stroke-width="2"
+      cx={apertureCx}
+      cy={apertureCy}
+      r={Math.max(2, specimen.aperture * 0.26)}
+      fill={apertureCoreFill(specimen)}
     />
-    <circle cx="160" cy="160" r={Math.max(2, specimen.aperture * 0.26)} fill="#f2ead7" />
   </g>
 </svg>
 

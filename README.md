@@ -59,7 +59,8 @@ The static production output is written to `build/`.
 ## Architecture
 
 ```text
-src/lib/shape.ts                    SHA-256-to-SVG renderers (v1 and v2) and morphology
+src/lib/shape.ts                    SHA-256-to-SVG renderers (v1-v4) and morphology
+src/lib/render.ts                   shared fill/opacity/blend/aperture formulas for rendering a Specimen
 src/lib/identity.ts                 DID input and bounded handle resolution
 src/lib/export.ts                   standalone SVG and provenance metadata export
 src/lib/oauth-config.ts             production/loopback OAuth identifiers and bounded scopes
@@ -82,9 +83,16 @@ The default generator version is `sha256-radial-v1`. Its output is a public comp
 Any intentional visual algorithm change must use a new version instead of mutating old specimens.
 A second rendition, `sha256-radial-v2`, derives wider variety from the same SHA-256 digest using a
 hash-seeded PRNG: broader symmetry (3–11), more layers (2–6), eight extra palettes, per-petal
-pinch/wobble, and free rotation. The observation page offers a rendition selector; the same DID and
-version always reproduce the same specimen. Social cards at `/api/og` remain pinned to v1 so their
-PNGs stay immutable and cacheable.
+pinch/wobble, and free rotation. A third rendition, `sha256-radial-v3`, adds per-layer motif variety
+(radial, star, spiral, cross, diamond, gear), expanded word pools, wider trait ranges (symmetry
+3–13, layers 2–8, aperture 3–55), and eight additional palettes. A fourth rendition,
+`sha256-radial-v4`, generates its palette procedurally from the digest instead of choosing from a
+fixed list, giving each specimen an effectively unlimited colour combination; gives each layer its
+own symmetry order, fill, opacity, and blend mode instead of one shared value; applies a
+deterministic point-level warp so outlines are no longer perfectly repeating polygons; and varies
+the central aperture's shape (circular or polygonal), colour, and offset from centre. The
+observation page offers a rendition selector; the same DID and version always reproduce the same
+specimen. Social cards at `/api/og` remain pinned to v1 so their PNGs stay immutable and cacheable.
 
 ## Protocol namespace
 

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   generateSpecimen,
   generateSpecimenV2,
+  generateSpecimenV3,
+  generateSpecimenV4,
   hashIdentity,
   isDid,
 } from "./shape";
@@ -146,5 +148,170 @@ describe("specimen generation", () => {
     expect(trimmed).toEqual(exact);
     expect(trimmed.did).toBe("did:example:CaseSensitive");
     expect(lower.fingerprint).not.toBe(trimmed.fingerprint);
+  });
+
+  describe("v3 generation", () => {
+    it("is stable for the same DID", async () => {
+      const first = await generateSpecimenV3(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      const second = await generateSpecimenV3(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      expect(second).toEqual(first);
+    });
+
+    it("produces meaningfully different specimens for different DIDs", async () => {
+      const first = await generateSpecimenV3("did:example:alpha");
+      const second = await generateSpecimenV3("did:example:beta");
+      expect(second.fingerprint).not.toBe(first.fingerprint);
+      expect(second.paths).not.toEqual(first.paths);
+    });
+
+    it("keeps generated traits within documented bounds", async () => {
+      const specimen = await generateSpecimenV3("did:web:hasharium.example");
+      expect(specimen.symmetry).toBeGreaterThanOrEqual(3);
+      expect(specimen.symmetry).toBeLessThanOrEqual(13);
+      expect(specimen.layers).toBeGreaterThanOrEqual(2);
+      expect(specimen.layers).toBeLessThanOrEqual(8);
+      expect(specimen.paths).toHaveLength(specimen.layers);
+      expect(specimen.catalogueNumber).toMatch(/^H-[A-F0-9]{4}-[A-F0-9]{4}$/);
+    });
+
+    it("exposes a v3 rendition with wider variety than v2", async () => {
+      const first = await generateSpecimenV3(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      const second = await generateSpecimenV3(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      expect(second).toEqual(first);
+      expect(first.generatorVersion).toBe("sha256-radial-v3");
+      expect(first.symmetry).toBeGreaterThanOrEqual(3);
+      expect(first.symmetry).toBeLessThanOrEqual(13);
+      expect(first.layers).toBeGreaterThanOrEqual(2);
+      expect(first.layers).toBeLessThanOrEqual(8);
+      expect(first.paths).toHaveLength(first.layers);
+      expect(
+        first.paths.every(
+          (path) => path.startsWith("M ") && path.endsWith(" Z"),
+        ),
+      ).toBe(true);
+    });
+
+    it("gives v3 meaningfully different geometry from v1 and v2", async () => {
+      const v1 = await generateSpecimen("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      const v2 = await generateSpecimenV2("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      const v3 = await generateSpecimenV3("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      expect(v3.fingerprint).toBe(v1.fingerprint);
+      expect(v3.name).not.toBe(v1.name);
+      expect(v3.paths).not.toEqual(v1.paths);
+      expect(v3.paths).not.toEqual(v2.paths);
+    });
+
+    it("preserves the v3 golden output for $did", async () => {
+      const expected = {
+        did: "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+        fingerprint:
+          "099e4ea96cd62c05a232331859d20c97425f25b21f193068b1abf7b763e40ed1",
+        catalogueNumber: "H-099E-4EA9",
+        name: "Fractured Monolith",
+        symmetry: 13,
+        layers: 4,
+        aperture: 43,
+        material: "mineral" as const,
+        temperament: "resonant",
+      };
+      const specimen = await generateSpecimenV3(expected.did);
+      expect(specimen).toMatchObject(expected);
+      expect(specimen.generatorVersion).toBe("sha256-radial-v3");
+    });
+  });
+
+  describe("v4 generation", () => {
+    it("is stable for the same DID", async () => {
+      const first = await generateSpecimenV4(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      const second = await generateSpecimenV4(
+        "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+      );
+      expect(second).toEqual(first);
+    });
+
+    it("produces meaningfully different specimens for different DIDs", async () => {
+      const first = await generateSpecimenV4("did:example:alpha");
+      const second = await generateSpecimenV4("did:example:beta");
+      expect(second.fingerprint).not.toBe(first.fingerprint);
+      expect(second.paths).not.toEqual(first.paths);
+      expect(second.palette).not.toEqual(first.palette);
+    });
+
+    it("keeps generated traits within documented bounds", async () => {
+      const specimen = await generateSpecimenV4("did:web:hasharium.example");
+      expect(specimen.symmetry).toBeGreaterThanOrEqual(3);
+      expect(specimen.symmetry).toBeLessThanOrEqual(14);
+      expect(specimen.layers).toBeGreaterThanOrEqual(2);
+      expect(specimen.layers).toBeLessThanOrEqual(9);
+      expect(specimen.aperture).toBeGreaterThanOrEqual(3);
+      expect(specimen.aperture).toBeLessThanOrEqual(57);
+      expect(specimen.paths).toHaveLength(specimen.layers);
+      expect(specimen.catalogueNumber).toMatch(/^H-[A-F0-9]{4}-[A-F0-9]{4}$/);
+      expect(specimen.layerFills).toHaveLength(specimen.layers);
+      expect(specimen.layerOpacities).toHaveLength(specimen.layers);
+      expect(specimen.layerBlendModes).toHaveLength(specimen.layers);
+      expect(
+        specimen.palette.every((color) => /^#[0-9a-f]{6}$/.test(color)),
+      ).toBe(true);
+      expect(
+        specimen.paths.every(
+          (path) => path.startsWith("M ") && path.endsWith(" Z"),
+        ),
+      ).toBe(true);
+    });
+
+    it("generates a procedural palette instead of picking from a fixed list", async () => {
+      const dids = [
+        "did:example:one",
+        "did:example:two",
+        "did:example:three",
+        "did:example:four",
+        "did:example:five",
+      ];
+      const palettes = await Promise.all(
+        dids.map(async (did) => (await generateSpecimenV4(did)).palette[0]),
+      );
+      expect(new Set(palettes).size).toBe(palettes.length);
+    });
+
+    it("gives v4 meaningfully different geometry from v1, v2, and v3", async () => {
+      const v1 = await generateSpecimen("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      const v2 = await generateSpecimenV2("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      const v3 = await generateSpecimenV3("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      const v4 = await generateSpecimenV4("did:plc:ewvi7nxzyoun6zhxrhs64oiz");
+      expect(v4.fingerprint).toBe(v1.fingerprint);
+      expect(v4.name).not.toBe(v1.name);
+      expect(v4.paths).not.toEqual(v1.paths);
+      expect(v4.paths).not.toEqual(v2.paths);
+      expect(v4.paths).not.toEqual(v3.paths);
+    });
+
+    it("preserves the v4 golden output for $did", async () => {
+      const expected = {
+        did: "did:plc:ewvi7nxzyoun6zhxrhs64oiz",
+        fingerprint:
+          "099e4ea96cd62c05a232331859d20c97425f25b21f193068b1abf7b763e40ed1",
+        catalogueNumber: "H-099E-4EA9",
+        name: "Singing Folio",
+        symmetry: 14,
+        layers: 4,
+        aperture: 45,
+        material: "mineral" as const,
+        temperament: "luminous",
+      };
+      const specimen = await generateSpecimenV4(expected.did);
+      expect(specimen).toMatchObject(expected);
+      expect(specimen.generatorVersion).toBe("sha256-radial-v4");
+    });
   });
 });

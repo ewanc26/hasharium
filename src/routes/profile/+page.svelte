@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Agent } from '@atproto/api';
+  import type { Client } from '@atproto/lex';
   import { onMount } from 'svelte';
   import Masthead from '$lib/components/Masthead.svelte';
   import SiteFooter from '$lib/components/SiteFooter.svelte';
@@ -52,7 +52,7 @@
     const current = $authState;
     if (current.status === 'signed-in' && current.did !== loadedDid) {
       loadedDid = current.did;
-      void loadProfile(current.did, current.agent);
+      void loadProfile(current.did, current.client);
     } else if (current.status === 'signed-out') {
       loadedDid = '';
       identity = null;
@@ -61,7 +61,7 @@
     }
   });
 
-  async function loadProfile(did: string, agent: Agent) {
+  async function loadProfile(did: string, client: Client) {
     const request = ++loadRequest;
     profileLoading = true;
     error = '';
@@ -69,7 +69,7 @@
       const [nextIdentity, ownSpecimen, entries] = await Promise.all([
         resolveIdentityProfile(did).catch(() => ({ did })),
         generateSpecimenForVersion(did, 'sha256-radial-v1'),
-        listCollectionEntries(agent)
+        listCollectionEntries(client)
       ]);
       const nextCabinet = await Promise.all(
         entries.map(async (entry) => ({
@@ -130,7 +130,7 @@
       if (cabinet.some(({ entry }) => entry.record.subject === resolved.did)) {
         throw new Error('That specimen is already present in this profile cabinet.');
       }
-      const entry = await createCollectionEntry(current.agent, resolved.did, fieldNote);
+      const entry = await createCollectionEntry(current.client, resolved.did, fieldNote);
       cabinet = [
         {
           entry,
@@ -158,7 +158,7 @@
     actionLoading = true;
     error = '';
     try {
-      await deleteCollectionEntry(current.agent, item.entry);
+      await deleteCollectionEntry(current.client, item.entry);
       cabinet = cabinet.filter(({ entry }) => entry.uri !== item.entry.uri);
       pendingDeleteUri = '';
       message = `Removed ${item.entry.record.subject} from the PDS cabinet.`;

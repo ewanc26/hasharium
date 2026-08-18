@@ -28,6 +28,8 @@ describe("Hasharium protocol constants", () => {
   it("lists every supported generator version as a named rendition", () => {
     expect(GENERATOR_VERSIONS).toContain("sha256-radial-v1");
     expect(GENERATOR_VERSIONS).toContain("sha256-radial-v2");
+    expect(GENERATOR_VERSIONS).toContain("sha256-radial-v3");
+    expect(GENERATOR_VERSIONS).toContain("sha256-radial-v4");
     for (const version of GENERATOR_VERSIONS) {
       expect(version).toMatch(/^sha256-[a-z0-9-]+-v\d+$/);
     }
