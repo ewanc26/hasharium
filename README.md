@@ -41,8 +41,7 @@ pnpm dev
 ```
 
 The development OAuth client uses the AT Protocol loopback convention and redirects to
-`http://127.0.0.1:5173/profile`. Keep Vite on port 5173 when
- manually exercising the development
+`http://127.0.0.1:5173/profile`. Keep Vite on port 5173 when manually exercising the development
 flow. Production uses the discoverable metadata at `/oauth-client-metadata.json`.
 
 Quality gates:
@@ -82,8 +81,7 @@ lexicons/click/croft/hasharium/     AT Protocol lexicon sources
 
 The default generator version is `sha256-radial-v1`. Its output is a public compatibility contract.
 Any intentional visual algorithm change must use a new version instead of mutating old specimens.
-A secon
-d rendition, `sha256-radial-v2`, derives wider variety from the same SHA-256 digest using a
+A second rendition, `sha256-radial-v2`, derives wider variety from the same SHA-256 digest using a
 hash-seeded PRNG: broader symmetry (3–11), more layers (2–6), eight extra palettes, per-petal
 pinch/wobble, and free rotation. A third rendition, `sha256-radial-v3`, adds per-layer motif variety
 (radial, star, spiral, cross, diamond, gear), expanded word pools, wider trait ranges (symmetry
@@ -116,8 +114,7 @@ every published Hasharium record type:
 atproto repo:click.croft.hasharium.collection.entry repo:click.croft.hasharium.exhibition repo:click.croft.hasharium.intersection
 ```
 
-The official `@atproto/oauth-client-browser` package performs authori
-zation-code exchange, PKCE,
+The official `@atproto/oauth-client-browser` package performs authorization-code exchange, PKCE,
 DPoP, refresh, revocation, and IndexedDB session storage. Hasharium never accepts app passwords and
 does not receive access outside `click.croft.hasharium.*`, blobs, email, or account administration.
 Handle resolution uses Microcosm Slingshot and therefore makes a disclosed network request; direct
@@ -154,8 +151,7 @@ generator version completely determine their output.
 
 Hasharium is configured with SvelteKit's static adapter and a `404.html` fallback. Vercel serves
 the contents of `build/` and runs the source-controlled `/api/og` and `/api/collectors` functions
-alongside them
-.
+alongside them.
 No application secrets are required.
 
 `vercel.json` pins the Vercel build command, `build/` output directory, and clean-URL mapping so
