@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for agents working on **Hasharium**, the independent DID-hash specimen collection site
+Guidance for AI coding agents working in **hasharium**.
 intended for `https://hasharium.croft.click`. This is a SvelteKit 2 / Svelte 5 static application.
 It turns exact DID strings into stable SVG forms and is growing toward portable AT Protocol
 collections stored in each user's PDS.
@@ -32,7 +32,8 @@ Before editing behavior, read:
 1. `README.md` for current shipped scope and honest deployment status.
 2. `package.json` for supported commands and package manager.
 3. `src/lib/shape.ts` and its tests before touching the generator.
-4. `src/lib/protocol.ts` and every affected file in `lexicons/` before touching records.
+4. `src/lib/protocol.ts` and every affected file in `lexicons/
+` before touching records.
 5. `src/routes/+page.svelte`, `src/lib/components/Specimen.svelte`, and
    `src/routes/styles.css` before changing interaction or presentation.
 
@@ -59,7 +60,8 @@ leave documentation describing planned behavior as if it already exists.
   records through Slingshot, and deduplicates curators. The index alone is never evidence.
 - `src/lib/export.ts` serializes portable specimen SVGs and provenance metadata. Export changes
   must preserve well-formed XML and keep subject DIDs escaped as untrusted text.
-- `src/lib/og.ts` validates social-card DID inputs and constructs canonical production image URLs.
+- `src/lib/og.ts` validates 
+social-card DID inputs and constructs canonical production image URLs.
 - `api/og.tsx` is the dynamic Vercel Function that renders the canonical specimen as a PNG. It must
   derive geometry through `generateSpecimen`, not reimplement or mutate the generator.
 - `api/collectors.ts` exposes bounded, cached collector discovery; invalid inputs and upstream
@@ -86,7 +88,8 @@ leave documentation describing planned behavior as if it already exists.
 ## Permanent namespace and hostname
 
 - The canonical production origin is exactly `https://hasharium.croft.click`.
-- **Every Hasharium lexicon and record type must live below `click.croft.hasharium.*`.** This is
+- **Every Hasharium lexicon and record typ
+e must live below `click.croft.hasharium.*`.** This is
   a hard product requirement, not a placeholder.
 - Current record NSIDs are:
   - `click.croft.hasharium.collection.entry`
@@ -120,7 +123,8 @@ Rules:
   number must not.
 - Refactoring is allowed only if compatibility tests prove byte-for-byte equivalent output.
 - If an intentional algorithm or mapping change alters any existing specimen, add a new named
-  generator (for example `sha256-radial-v2` or `sha256-radial-v3`) and preserve a way to render
+  generator (for example `sha256-radial-v2` o
+r `sha256-radial-v3`) and preserve a way to render
   v1 records. Do not silently mutate `sha256-radial-v1`.
 - A v3 generator adds per-layer motif variety (radial, star, spiral, cross, diamond, gear),
   expanded word pools, wider trait ranges, and additional palettes.
@@ -149,7 +153,8 @@ Current OAuth invariants:
 - Production client ID: `https://hasharium.croft.click/oauth-client-metadata.json`.
 - Production redirect URI: `https://hasharium.croft.click/profile`.
 - Requested scope: `atproto` plus one granular `repo:` scope for each of collection entry,
-  intersection, and exhibition. Never replace these with `repo:*` or an unrelated namespace.
+  intersec
+tion, and exhibition. Never replace these with `repo:*` or an unrelated namespace.
 - Client type: public web client with authorization code, refresh tokens, PKCE, and DPoP-bound
   access tokens. Never add a browser client secret.
 - Development uses the AT Protocol loopback client convention with a `127.0.0.1` redirect; do not
@@ -176,6 +181,7 @@ When extending authenticated PDS behavior:
 - Revocation/sign-out errors must not leave the UI claiming an authenticated session. Never log or
   render access tokens, refresh tokens, authorization codes, DPoP keys, or raw callback fragments.
 - Prevent accidental duplicate entries in normal UI, but tolerate duplicate public records when
+
   reading because repositories are user-controlled.
 - Validate every loaded record before rendering. Ignore unknown `$type`s, malformed dates,
   invalid DIDs, excessive arrays/strings, and unsafe external URLs without crashing the cabinet.
@@ -213,7 +219,8 @@ When extending authenticated PDS behavior:
 
 - Preserve the warm paper (`--paper`), deep green ink (`--ink`/`--green`), oxide red (`--red`),
   fine rules, large editorial serif type, monospaced catalogue labels, and generous whitespace.
-- New UI should feel like a museum drawer, field index, observation instrument, or curator's note.
+- New
+ UI should feel like a museum drawer, field index, observation instrument, or curator's note.
   Avoid generic gradient SaaS cards, neon crypto aesthetics, glassmorphism, excessive pills, and
   dashboards full of metrics.
 - Let the specimens provide most of the colour. Interface chrome should remain restrained.
@@ -235,7 +242,8 @@ When extending authenticated PDS behavior:
 - The browser-local tray key is `hasharium.study-tray`. Treat its JSON as untrusted: catch parse
   failures and filter values. A format change requires tolerant migration or an explicit reset.
 - Avoid runtime third-party font, analytics, and asset requests. Inter and JetBrains Mono are
-  self-hosted in the build, the display serif uses a local system stack, and specimens are
+  self-hosted in the build, th
+e display serif uses a local system stack, and specimens are
   computed entirely in the browser. Preserve the visible font licence notice when changing fonts.
 - Social cards must remain 1200×630 PNGs, accept canonical DIDs only, escape all displayed input,
   and preserve the observation-plate language. Successful cards may be immutable because the URL
@@ -266,7 +274,8 @@ When extending authenticated PDS behavior:
 - A DID and public repository records are public identifiers/data, but a person's browsing and
   curation activity can still be sensitive. Do not add analytics or transmit study-tray contents
   without an explicit product decision and clear disclosure.
-- Validate input length before hashing to prevent needless work on huge strings. DID validation is
+- Validate input
+ length before hashing to prevent needless work on huge strings. DID validation is
   syntactic only; passing it does not prove that the DID resolves or belongs to the visitor.
 - Escape all untrusted values through normal Svelte text bindings. Never interpolate them into
   script, style, filter, redirect, or raw HTML contexts.
@@ -307,7 +316,8 @@ Lexicon/protocol changes additionally require:
 - assert each `id` lives under `click.croft.hasharium.*` and matches its path/runtime constant;
 - validate schemas with an authoritative AT Protocol lexicon validator when available;
 - round-trip representative valid records and reject malformed DID/date/length cases;
-- inspect compatibility with already published records before making a breaking change.
+- inspect compatibility with already published recor
+ds before making a breaking change.
 
 UI changes additionally require manual checks for:
 
@@ -338,7 +348,8 @@ its real surface.
 
 - The current adapter writes the site to `build/` with a `404.html` fallback. Vercel additionally
   bundles root-level `api/` functions; keep the static site and function boundary explicit.
-- `vercel.json` explicitly selects `pnpm build`, the `build/` output directory, and clean URLs so
+- `vercel.json` 
+explicitly selects `pnpm build`, the `build/` output directory, and clean URLs so
   `/profile` and `/about` resolve to their prerendered HTML files. Preserve this static contract
   unless the application intentionally moves to Vercel's server adapter.
 - The OG function uses the Node.js runtime and `@vercel/og`. Verify it with `vercel build` or a live
@@ -368,7 +379,8 @@ its real surface.
 
 Unless the user prioritizes another slice, develop in this order:
 
-1. Harden v1 golden compatibility tests and exportable SVG metadata.
+1
+. Harden v1 golden compatibility tests and exportable SVG metadata.
 2. Add handle-to-DID resolution while continuing to hash only the resolved DID.
 3. Add deterministic pair intersections with reciprocal-status evidence.
 4. Add authored exhibitions and extend public discovery through verified exhibition backlinks.
