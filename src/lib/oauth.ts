@@ -1,5 +1,5 @@
 import { browser, dev } from "$app/environment";
-import type { Client } from '@atproto/lex';
+import type { Client } from "@atproto/lex";
 import type {
   BrowserOAuthClient,
   OAuthSession,

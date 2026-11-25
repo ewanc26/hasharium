@@ -1,5 +1,5 @@
-import type { Client } from '@atproto/lex';
-import { com } from '@bsky/sdk/lexicons';
+import type { Client } from "@atproto/lex";
+import { com } from "@bsky/sdk/lexicons";
 import {
   GENERATOR_VERSION,
   GENERATOR_VERSIONS,
@@ -103,15 +103,12 @@ export async function listCollectionEntries(
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_RECORD_PAGES; page += 1) {
-    const response = await client.call(
-      com.atproto.repo.listRecords,
-      {
-        repo: client.assertDid,
-        collection: NSID.collectionEntry,
-        limit: 100,
-        cursor,
-      },
-    );
+    const response = await client.call(com.atproto.repo.listRecords, {
+      repo: client.assertDid,
+      collection: NSID.collectionEntry,
+      limit: 100,
+      cursor,
+    });
     for (const item of response.records) {
       const entry = parseCollectionEntry(item.value, item.uri, item.cid);
       if (entry) entries.push(entry);
@@ -149,19 +146,12 @@ export async function createCollectionEntry(
     createdAt: new Date().toISOString(),
     ...(normalizedNote ? { note: normalizedNote } : {}),
   };
-  const response = await client.call(
-    com.atproto.repo.createRecord,
-    {
-      repo: client.assertDid,
-      collection: NSID.collectionEntry,
-      record: { ...record },
-    },
-  );
-  const entry = parseCollectionEntry(
-    record,
-    response.uri,
-    response.cid,
-  );
+  const response = await client.call(com.atproto.repo.createRecord, {
+    repo: client.assertDid,
+    collection: NSID.collectionEntry,
+    record: { ...record },
+  });
+  const entry = parseCollectionEntry(record, response.uri, response.cid);
   if (!entry) throw new Error("The PDS returned an invalid collection record.");
   return entry;
 }
@@ -170,12 +160,9 @@ export async function deleteCollectionEntry(
   client: Client,
   entry: CollectionEntry,
 ): Promise<void> {
-  await client.call(
-    com.atproto.repo.deleteRecord,
-    {
-      repo: client.assertDid,
-      collection: NSID.collectionEntry,
-      rkey: entry.rkey,
-    },
-  );
+  await client.call(com.atproto.repo.deleteRecord, {
+    repo: client.assertDid,
+    collection: NSID.collectionEntry,
+    rkey: entry.rkey,
+  });
 }
