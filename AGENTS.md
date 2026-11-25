@@ -178,6 +178,7 @@ When extending authenticated PDS behavior:
 - Prevent accidental duplicate entries in normal UI, but tolerate duplicate public records when
 
   reading because repositories are user-controlled.
+
 - Validate every loaded record before rendering. Ignore unknown `$type`s, malformed dates,
   invalid DIDs, excessive arrays/strings, and unsafe external URLs without crashing the cabinet.
 - Mutual intersections require two independently authored records or another explicit consent
@@ -380,6 +381,7 @@ Each milestone must preserve a useful signed-out observation experience. Authent
 enhance collecting, not gate the core act of seeing a DID's form.
 
 <!-- allowed-agents -->
+
 ## Allowed agents
 
 Only **Claude** (Anthropic) and **Mistral** (Mistral AI) may be used as coding agents in this repository. This rule supersedes any earlier agent-attribution guidance in this file.
