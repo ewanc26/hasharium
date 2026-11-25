@@ -1,27 +1,27 @@
 <script lang="ts">
   import type { Client } from '@atproto/lex';
   import { onMount } from 'svelte';
-  import Masthead from '$lib/components/Masthead.svelte';
-  import CollectorRegister from '$lib/components/CollectorRegister.svelte';
-  import SiteFooter from '$lib/components/SiteFooter.svelte';
-  import SpecimenView from '$lib/components/Specimen.svelte';
+  import Masthead from '#lib/components/Masthead.svelte';
+  import CollectorRegister from '#lib/components/CollectorRegister.svelte';
+  import SiteFooter from '#lib/components/SiteFooter.svelte';
+  import SpecimenView from '#lib/components/Specimen.svelte';
   import {
     createCollectionEntry,
     deleteCollectionEntry,
     listCollectionEntries,
     type CollectionEntry
-  } from '$lib/collection';
-  import { exportSpecimenSvg, specimenExportFilename } from '$lib/export';
-  import { IdentityResolutionError, resolveIdentity } from '$lib/identity';
-  import { authState } from '$lib/oauth';
-  import { canonicalUrl, GENERATOR_VERSIONS, NSID, PLACEHOLDER_DID } from '$lib/protocol';
+  } from '#lib/collection.ts';
+  import { exportSpecimenSvg, specimenExportFilename } from '#lib/export.ts';
+  import { IdentityResolutionError, resolveIdentity } from '#lib/identity.ts';
+  import { authState } from '#lib/oauth.ts';
+  import { canonicalUrl, GENERATOR_VERSIONS, NSID, PLACEHOLDER_DID } from '#lib/protocol.ts';
   import {
     generateSpecimenForVersion,
     isDid,
     isGeneratorVersion,
     type GeneratorVersion,
     type Specimen
-  } from '$lib/shape';
+  } from '#lib/shape.ts';
 
   const defaultDid = PLACEHOLDER_DID;
   const exampleDids = [

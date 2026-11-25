@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Collector } from '$lib/backlinks';
+  import type { Collector } from '#lib/backlinks.ts';
 
   let { did }: { did: string } = $props();
   let collectors = $state<Collector[]>([]);

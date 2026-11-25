@@ -4,7 +4,7 @@
 
 ## Getting started
 
-Use Node.js 22 or newer and pnpm:
+Use Node.js 22.17 or newer and pnpm:
 
 ```sh
 pnpm install
