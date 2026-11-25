@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Specimen } from '$lib/shape';
+  import type { Specimen } from '#lib/shape.ts';
   import {
     apertureCenter,
     apertureCoreFill,
@@ -12,7 +12,7 @@
     layerStroke,
     layerStrokeOpacity,
     noiseFrequency
-  } from '$lib/render';
+  } from '#lib/render.ts';
 
   let {
     specimen,

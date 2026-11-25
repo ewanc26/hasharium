@@ -2,8 +2,8 @@
   import '@fontsource-variable/inter/wght.css';
   import '@fontsource-variable/jetbrains-mono/wght.css';
   import { onMount } from 'svelte';
-  import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH, ogImageUrl } from '$lib/og';
-  import { initializeOAuth } from '$lib/oauth';
+  import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH, ogImageUrl } from '#lib/og.ts';
+  import { initializeOAuth } from '#lib/oauth.ts';
   import './styles.css';
   let { children } = $props();
   const defaultOgImage = ogImageUrl();
