@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Guidance for AI coding agents working in **hasharium**.
-intended for `https://hasharium.croft.click`. This is a SvelteKit 2 / Svelte 5 static application.
+intended for `https://hasharium.croft.click`. This is a SvelteKit 3 / Svelte 5 static application.
 It turns exact DID strings into stable SVG forms and is growing toward portable AT Protocol
 collections stored in each user's PDS.
 
