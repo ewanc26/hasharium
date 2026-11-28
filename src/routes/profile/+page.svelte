@@ -1,29 +1,29 @@
 <script lang="ts">
   import type { Client } from '@atproto/lex';
   import { onMount } from 'svelte';
-  import Masthead from '$lib/components/Masthead.svelte';
-  import SiteFooter from '$lib/components/SiteFooter.svelte';
-  import SpecimenView from '$lib/components/Specimen.svelte';
+  import Masthead from '#lib/components/Masthead.svelte';
+  import SiteFooter from '#lib/components/SiteFooter.svelte';
+  import SpecimenView from '#lib/components/Specimen.svelte';
   import {
     createCollectionEntry,
     deleteCollectionEntry,
     listCollectionEntries,
     type CollectionEntry
-  } from '$lib/collection';
-  import { resolveIdentity, resolveIdentityProfile, type IdentityProfile } from '$lib/identity';
+  } from '#lib/collection.ts';
+  import { resolveIdentity, resolveIdentityProfile, type IdentityProfile } from '#lib/identity.ts';
   import {
     authState,
     dismissOAuthError,
     initializeOAuth,
     signInWithOAuth,
     signOutOfOAuth
-  } from '$lib/oauth';
-  import { canonicalUrl, NSID, PLACEHOLDER_DID } from '$lib/protocol';
+  } from '#lib/oauth.ts';
+  import { canonicalUrl, NSID, PLACEHOLDER_DID } from '#lib/protocol.ts';
   import {
     generateSpecimenForVersion,
     type GeneratorVersion,
     type Specimen
-  } from '$lib/shape';
+  } from '#lib/shape.ts';
 
   interface CabinetEntry {
     entry: CollectionEntry;

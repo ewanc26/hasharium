@@ -33,7 +33,7 @@ collection changes complete only after the visitor's PDS confirms them.
 
 ## Development
 
-Use Node.js 22 or newer and pnpm:
+Use Node.js 22.17 or newer and pnpm:
 
 ```sh
 pnpm install
@@ -171,8 +171,13 @@ If you find this project useful, consider supporting its development:
 
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/ewancroft)
 [![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/sponsors/ewanc26)
+[![Liberapay](https://img.shields.io/badge/Liberapay-A60000?style=for-the-badge&logo=liberapay&logoColor=white)](https://liberapay.com/ewanc26/)
 
 ## Licence
 
 Copyright © 2026 Ewan Croft. Licensed under the
 [GNU Affero General Public License v3.0](./LICENSE) (`AGPL-3.0-only`).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the checks required before opening a pull request.

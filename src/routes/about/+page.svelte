@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Masthead from '$lib/components/Masthead.svelte';
-  import SiteFooter from '$lib/components/SiteFooter.svelte';
-  import { canonicalUrl, NSID, SOURCE_URL } from '$lib/protocol';
+  import Masthead from '#lib/components/Masthead.svelte';
+  import SiteFooter from '#lib/components/SiteFooter.svelte';
+  import { canonicalUrl, NSID, SOURCE_URL } from '#lib/protocol.ts';
 </script>
 
 <svelte:head>

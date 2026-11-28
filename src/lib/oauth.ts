@@ -1,4 +1,4 @@
-import { browser, dev } from "$app/environment";
+import { browser, dev } from "$app/env";
 import type { Client } from "@atproto/lex";
 import type {
   BrowserOAuthClient,
@@ -16,7 +16,12 @@ import { isDid } from "./shape";
 
 export type AuthState =
   | { status: "idle" | "loading" | "signed-out" | "authorizing" }
-  | { status: "signed-in"; did: string; client: Client; session: OAuthSession }
+  | {
+      status: "signed-in";
+      did: string;
+      client: Client;
+      session: OAuthSession;
+    }
   | { status: "error"; message: string };
 
 export const authState = writable<AuthState>({ status: "idle" });
@@ -36,7 +41,7 @@ async function getClient(): Promise<BrowserOAuthClient> {
       BrowserOAuthClient.load({
         clientId: currentClientId(),
         handleResolver: OAUTH_HANDLE_RESOLVER,
-        onDelete: (did) => {
+        onSessionDeleted: (did) => {
           const current = get(authState);
           if (current.status === "signed-in" && current.did === did) {
             authState.set({ status: "signed-out" });

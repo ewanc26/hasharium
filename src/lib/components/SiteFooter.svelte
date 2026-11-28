@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SOURCE_URL } from '$lib/protocol';
+  import { SOURCE_URL } from '#lib/protocol.ts';
 </script>
 
 <footer class="site-footer">

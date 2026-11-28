@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import { authState } from '$lib/oauth';
+  import { authState } from '#lib/oauth.ts';
 
   let {
     trayCount = 0,

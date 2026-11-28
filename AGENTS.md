@@ -1,7 +1,7 @@
 # AGENTS.md
 
-Guidance for agents working on **Hasharium**, the independent DID-hash specimen collection site
-intended for `https://hasharium.croft.click`. This is a SvelteKit 2 / Svelte 5 static application.
+Guidance for AI coding agents working in **hasharium**.
+intended for `https://hasharium.croft.click`. This is a SvelteKit 3 / Svelte 5 static application.
 It turns exact DID strings into stable SVG forms and is growing toward portable AT Protocol
 collections stored in each user's PDS.
 
@@ -176,7 +176,9 @@ When extending authenticated PDS behavior:
 - Revocation/sign-out errors must not leave the UI claiming an authenticated session. Never log or
   render access tokens, refresh tokens, authorization codes, DPoP keys, or raw callback fragments.
 - Prevent accidental duplicate entries in normal UI, but tolerate duplicate public records when
+
   reading because repositories are user-controlled.
+
 - Validate every loaded record before rendering. Ignore unknown `$type`s, malformed dates,
   invalid DIDs, excessive arrays/strings, and unsafe external URLs without crashing the cabinet.
 - Mutual intersections require two independently authored records or another explicit consent
