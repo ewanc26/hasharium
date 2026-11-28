@@ -379,6 +379,7 @@ Each milestone must preserve a useful signed-out observation experience. Authent
 enhance collecting, not gate the core act of seeing a DID's form.
 
 <!-- allowed-agents -->
+
 ## Allowed agents
 
 Only **Claude** (Anthropic) and **Mistral** (Mistral AI) may be used as coding agents in this repository. This rule supersedes any earlier agent-attribution guidance in this file.
